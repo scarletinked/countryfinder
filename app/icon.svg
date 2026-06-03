@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3d6b"/>
+      <stop offset="100%" stop-color="#0c1f36"/>
+    </linearGradient>
+    <radialGradient id="compassGlow" cx="50%" cy="70%" r="55%">
+      <stop offset="0%" stop-color="#f8e070"/>
+      <stop offset="100%" stop-color="#c8952a"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="50" fill="url(#sky)"/>
+
+  <!-- ── COMPASS ROSE (center: 50, 63) ── -->
+  <!-- 4-pointed star: N(50,35), NE-indent(58,46), E(78,63), SE-indent(58,80), S(50,91), SW-indent(42,80), W(22,63), NW-indent(42,46) -->
+  <polygon points="50,35 58,46 78,63 58,80 50,91 42,80 22,63 42,46" fill="url(#compassGlow)"/>
+  <!-- N arm lighter highlight -->
+  <polygon points="50,35 58,46 42,46" fill="#fce870" opacity="0.75"/>
+
+  <!-- Compass ring -->
+  <circle cx="50" cy="63" r="24" fill="none" stroke="#e8b830" stroke-width="1.5" opacity="0.65"/>
+
+  <!-- Centre hub -->
+  <circle cx="50" cy="63" r="5" fill="#e8b830"/>
+  <circle cx="50" cy="63" r="2.5" fill="#0c1f36"/>
+
+  <!-- ── PARROT (perched on N tip at 50, 35) ── -->
+
+  <!-- Tail feathers (drawn first, behind body) -->
+  <path d="M 47,32 Q 33,44 30,58" stroke="#00897b" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M 49,34 Q 38,48 37,62" stroke="#26a69a" stroke-width="2.5"  fill="none" stroke-linecap="round"/>
+
+  <!-- Wing (dark, behind body) -->
+  <path d="M 45,22 Q 42,29 46,36 Q 52,28 56,24 Z" fill="#1b5e20"/>
+
+  <!-- Body -->
+  <ellipse cx="54" cy="24" rx="9" ry="6.5" fill="#2e7d32" transform="rotate(-20, 54, 24)"/>
+
+  <!-- Head -->
+  <circle cx="63" cy="15" r="7.5" fill="#43a047"/>
+
+  <!-- Crest feathers -->
+  <path d="M 60,9 Q 62,3 65,8"  stroke="#e53935" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <path d="M 63,8 Q 66,2 68,7"  stroke="#fb8c00" stroke-width="2"   fill="none" stroke-linecap="round"/>
+
+  <!-- Eye -->
+  <circle cx="66"  cy="13"   r="2.5" fill="#0c1f36"/>
+  <circle cx="66.7" cy="12.3" r="0.9" fill="white"/>
+
+  <!-- Beak (hooked) -->
+  <path d="M 68,14 Q 75,13 73.5,18 Q 68,18 68,14 Z" fill="#f57f17"/>
+  <line x1="68" y1="16.5" x2="73.5" y2="18" stroke="#e65100" stroke-width="0.8"/>
+
+  <!-- Feet gripping N arm tip -->
+  <path d="M 49,35 Q 46,38 43,39" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M 51,36 Q 54,39 57,40" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+</svg>

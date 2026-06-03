@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 110">
+  <defs>
+    <linearGradient id="logoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3d6b"/>
+      <stop offset="100%" stop-color="#0c1f36"/>
+    </linearGradient>
+    <radialGradient id="cGlow" cx="50%" cy="70%" r="55%">
+      <stop offset="0%" stop-color="#f8e070"/>
+      <stop offset="100%" stop-color="#c8952a"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="340" height="110" rx="14" fill="url(#logoBg)"/>
+
+  <!-- ── COMPASS ROSE (center: 57, 83, r=24) ── -->
+  <!-- N(57,59) NE-indent(64,70) E(81,83) SE-indent(64,96) S(57,107) SW-indent(50,96) W(33,83) NW-indent(50,70) -->
+  <polygon points="57,59 64,70 81,83 64,96 57,107 50,96 33,83 50,70" fill="url(#cGlow)"/>
+  <!-- N arm highlight -->
+  <polygon points="57,59 64,70 50,70" fill="#fce870" opacity="0.75"/>
+
+  <!-- Compass ring -->
+  <circle cx="57" cy="83" r="21" fill="none" stroke="#e8b830" stroke-width="1.5" opacity="0.65"/>
+
+  <!-- Centre hub -->
+  <circle cx="57" cy="83" r="4.5" fill="#e8b830"/>
+  <circle cx="57" cy="83" r="2.2" fill="#0c1f36"/>
+
+  <!-- ── PARROT (perched on N tip at 57, 59) ── -->
+
+  <!-- Tail feathers -->
+  <path d="M 54,56 Q 40,68 37,82" stroke="#00897b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+  <path d="M 55,58 Q 44,72 44,86" stroke="#26a69a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Wing (dark, behind body) -->
+  <path d="M 51,46 Q 48,52 52,59 Q 57,51 62,47 Z" fill="#1b5e20"/>
+
+  <!-- Body -->
+  <ellipse cx="61" cy="46" rx="9" ry="6.5" fill="#2e7d32" transform="rotate(-20, 61, 46)"/>
+
+  <!-- Head -->
+  <circle cx="70" cy="37" r="7.5" fill="#43a047"/>
+
+  <!-- Crest feathers -->
+  <path d="M 67,31 Q 69,25 72,30" stroke="#e53935" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <path d="M 70,30 Q 73,23 75,28" stroke="#fb8c00" stroke-width="2"   fill="none" stroke-linecap="round"/>
+
+  <!-- Eye -->
+  <circle cx="73"   cy="35"   r="2.5" fill="#0c1f36"/>
+  <circle cx="73.7" cy="34.3" r="0.9" fill="white"/>
+
+  <!-- Beak (hooked) -->
+  <path d="M 75,36 Q 82,35 80.5,40 Q 75,40 75,36 Z" fill="#f57f17"/>
+  <line x1="75" y1="38.5" x2="80.5" y2="40" stroke="#e65100" stroke-width="0.8"/>
+
+  <!-- Feet gripping N arm -->
+  <path d="M 56,59 Q 53,62 50,63" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M 58,60 Q 61,63 64,64" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+
+  <!-- ── TEXT ── -->
+  <!-- "Homing" -->
+  <text
+    x="105" y="57"
+    font-family="Georgia, 'Palatino Linotype', 'Book Antiqua', serif"
+    font-size="36"
+    font-weight="bold"
+    fill="#f0f4ff"
+    letter-spacing="1"
+  >Homing</text>
+
+  <!-- "Parrot" in gold -->
+  <text
+    x="105" y="95"
+    font-family="Georgia, 'Palatino Linotype', 'Book Antiqua', serif"
+    font-size="40"
+    font-weight="bold"
+    fill="#f0c040"
+    letter-spacing="1"
+  >Parrot</text>
+
+  <!-- Tagline -->
+  <text
+    x="107" y="106"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="9"
+    fill="#8aafd4"
+    letter-spacing="3"
+    font-weight="normal"
+  >GEOGRAPHY GAME</text>
+</svg>
