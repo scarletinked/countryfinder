@@ -142,7 +142,7 @@ export default function GameContainer() {
   const isResult = state.phase === "round-result";
 
   return (
-    <div className="flex flex-col h-screen bg-slate-900">
+    <div className="flex flex-col h-dvh bg-slate-900">
       <GameHUD
         countryName={currentRound.targetCountry.name}
         currentRound={state.currentRound + 1}
@@ -175,23 +175,20 @@ export default function GameContainer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="flex items-center px-4 py-3 bg-slate-800 border-t border-slate-700 flex-shrink-0">
-        <div className="flex-1" />
+      <div className="flex items-center gap-2 px-3 py-3 bg-slate-800 border-t border-slate-700 flex-shrink-0">
         <button
           onClick={handleGuess}
           disabled={!state.markerPosition || isResult}
-          className="bg-green-600 hover:bg-green-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold px-12 py-3 rounded-lg text-lg transition-colors"
+          className="flex-1 bg-green-600 hover:bg-green-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold py-3 rounded-lg text-base sm:text-lg transition-colors"
         >
-          {state.markerPosition ? "Guess!" : "Click the map to place your guess"}
+          {state.markerPosition ? "Guess!" : "Tap the map to place your guess"}
         </button>
-        <div className="flex-1 flex justify-end">
-          <button
-            onClick={handleReturnToMenu}
-            className="text-slate-400 hover:text-white text-sm transition-colors px-2 py-1"
-          >
-            Main Menu
-          </button>
-        </div>
+        <button
+          onClick={handleReturnToMenu}
+          className="text-slate-400 hover:text-white text-sm transition-colors px-2 py-1 whitespace-nowrap flex-shrink-0"
+        >
+          Menu
+        </button>
       </div>
     </div>
   );
