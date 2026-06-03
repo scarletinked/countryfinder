@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getLeaderboard, addEntry } from "@/lib/leaderboard";
+import { getLeaderboard, getWeeklyLeaderboard, getDailyLeaderboard, addEntry } from "@/lib/leaderboard";
 import { isProfane } from "@/lib/profanity";
 
 export async function GET() {
-  return NextResponse.json({ leaderboard: await getLeaderboard() });
+  const [allTime, weekly, daily] = await Promise.all([
+    getLeaderboard(),
+    getWeeklyLeaderboard(),
+    getDailyLeaderboard(),
+  ]);
+  return NextResponse.json({ allTime, weekly, daily });
 }
 
 export async function POST(req: NextRequest) {
@@ -29,11 +34,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "profanity" }, { status: 400 });
   }
 
-  const leaderboard = await addEntry({
+  const { allTime, weekly, daily } = await addEntry({
     name: trimmed,
     score: Math.round(score),
     date: new Date().toISOString(),
   });
 
-  return NextResponse.json({ leaderboard });
+  return NextResponse.json({ allTime, weekly, daily });
 }

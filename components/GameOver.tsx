@@ -3,13 +3,25 @@
 import { useState, useEffect } from "react";
 import type { LeaderboardEntry } from "@/types";
 
+interface Boards {
+  allTime: LeaderboardEntry[];
+  weekly: LeaderboardEntry[];
+  daily: LeaderboardEntry[];
+}
+
 interface GameOverProps {
   totalScore: number;
   onPlayAgain: () => void;
 }
 
+const MAX_ENTRIES = 10;
+
+function qualifiesFor(board: LeaderboardEntry[], score: number): boolean {
+  return board.length < MAX_ENTRIES || score > board[board.length - 1].score;
+}
+
 export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [boards, setBoards] = useState<Boards>({ allTime: [], weekly: [], daily: [] });
   const [qualifies, setQualifies] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [error, setError] = useState("");
@@ -20,12 +32,13 @@ export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
   useEffect(() => {
     fetch("/api/leaderboard")
       .then((r) => r.json())
-      .then((data: { leaderboard: LeaderboardEntry[] }) => {
-        setLeaderboard(data.leaderboard);
-        const board = data.leaderboard;
-        const qualif =
-          board.length < 10 || totalScore > board[board.length - 1].score;
-        setQualifies(qualif);
+      .then((data: Boards) => {
+        setBoards(data);
+        setQualifies(
+          qualifiesFor(data.allTime, totalScore) ||
+          qualifiesFor(data.weekly, totalScore) ||
+          qualifiesFor(data.daily, totalScore)
+        );
         setLoading(false);
       });
   }, [totalScore]);
@@ -56,9 +69,15 @@ export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
       return;
     }
 
-    setLeaderboard(data.leaderboard);
+    setBoards(data);
     setSubmitted(true);
   }
+
+  const sections: { label: string; entries: LeaderboardEntry[] }[] = [
+    { label: "☀️ Today", entries: boards.daily },
+    { label: "📅 This Week", entries: boards.weekly },
+    { label: "🏅 All Time", entries: boards.allTime },
+  ];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 px-4 py-8">
@@ -71,7 +90,7 @@ export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
       {qualifies && !submitted && !loading && (
         <div className="bg-slate-800 border border-slate-600 rounded-xl p-6 mb-8 w-full max-w-sm">
           <p className="text-green-400 font-bold text-lg mb-3 text-center">
-            🏆 You made the top 10!
+            🏆 You made the leaderboard!
           </p>
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <input
@@ -95,35 +114,38 @@ export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
         </div>
       )}
 
-      {/* Leaderboard */}
-      <div className="bg-slate-800 border border-slate-600 rounded-xl p-6 w-full max-w-sm mb-8">
-        <h2 className="text-xl font-bold text-white mb-4 text-center">
-          🏅 Top Scores
-        </h2>
-        {loading ? (
-          <p className="text-slate-400 text-center">Loading…</p>
-        ) : leaderboard.length === 0 ? (
-          <p className="text-slate-400 text-center">No scores yet. You&apos;re first!</p>
-        ) : (
-          <ol className="space-y-2">
-            {leaderboard.map((entry, i) => (
-              <li
-                key={i}
-                className={`flex justify-between items-center px-3 py-2 rounded ${
-                  entry.score === totalScore && submitted
-                    ? "bg-yellow-500/20 border border-yellow-500/40"
-                    : "bg-slate-700"
-                }`}
-              >
-                <span className="text-slate-400 w-6 text-sm">{i + 1}.</span>
-                <span className="text-white flex-1 ml-2 truncate">
-                  {entry.name}
-                </span>
-                <span className="text-yellow-400 font-bold">{entry.score}</span>
-              </li>
-            ))}
-          </ol>
-        )}
+      {/* Leaderboards */}
+      <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl mb-8">
+        {sections.map(({ label, entries }) => (
+          <div
+            key={label}
+            className="bg-slate-800 border border-slate-600 rounded-xl p-4 flex-1"
+          >
+            <h2 className="text-sm font-bold text-white mb-3 text-center">{label}</h2>
+            {loading ? (
+              <p className="text-slate-400 text-center text-sm">Loading…</p>
+            ) : entries.length === 0 ? (
+              <p className="text-slate-400 text-center text-sm">No scores yet</p>
+            ) : (
+              <ol className="space-y-1">
+                {entries.map((entry, i) => (
+                  <li
+                    key={i}
+                    className={`flex items-center gap-2 px-2 py-1 rounded text-sm ${
+                      entry.score === totalScore && submitted
+                        ? "bg-yellow-500/20 border border-yellow-500/40"
+                        : ""
+                    }`}
+                  >
+                    <span className="text-slate-400 w-5 text-xs">{i + 1}.</span>
+                    <span className="text-white flex-1 truncate">{entry.name}</span>
+                    <span className="text-yellow-400 font-bold">{entry.score}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        ))}
       </div>
 
       <button

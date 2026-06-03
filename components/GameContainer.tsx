@@ -18,7 +18,11 @@ export default function GameContainer() {
   const [state, dispatch] = useGameState();
   const [allCountries, setAllCountries] = useState<CountryFeature[]>([]);
   const [loadingMap, setLoadingMap] = useState(true);
-  const [homeLeaderboard, setHomeLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [homeLeaderboard, setHomeLeaderboard] = useState<{
+    allTime: LeaderboardEntry[];
+    weekly: LeaderboardEntry[];
+    daily: LeaderboardEntry[];
+  } | null>(null);
   const mapRef = useRef<WorldMapHandle>(null);
 
   // Load country geodata once
@@ -34,8 +38,8 @@ export default function GameContainer() {
     if (state.phase !== "home") return;
     fetch("/api/leaderboard")
       .then((r) => r.json())
-      .then((data: { leaderboard: LeaderboardEntry[] }) =>
-        setHomeLeaderboard(data.leaderboard)
+      .then((data: { allTime: LeaderboardEntry[]; weekly: LeaderboardEntry[]; daily: LeaderboardEntry[] }) =>
+        setHomeLeaderboard(data)
       );
   }, [state.phase]);
 
@@ -108,23 +112,36 @@ export default function GameContainer() {
             Start Game
           </button>
         )}
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 w-full max-w-sm">
-          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">
-            🏅 Top 10 Scores
-          </h2>
-          {homeLeaderboard.length === 0 ? (
-            <p className="text-slate-500 text-sm text-center">No scores yet — be the first!</p>
-          ) : (
-            <ol className="space-y-2">
-              {homeLeaderboard.map((entry, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm">
-                  <span className="text-slate-500 w-5 text-right">{i + 1}.</span>
-                  <span className="text-white flex-1 truncate">{entry.name}</span>
-                  <span className="text-yellow-400 font-bold">{entry.score}</span>
-                </li>
-              ))}
-            </ol>
-          )}
+        <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl">
+          {(
+            [
+              { label: "☀️ Today", entries: homeLeaderboard?.daily ?? [] },
+              { label: "📅 This Week", entries: homeLeaderboard?.weekly ?? [] },
+              { label: "🏅 All Time", entries: homeLeaderboard?.allTime ?? [] },
+            ] as { label: string; entries: LeaderboardEntry[] }[]
+          ).map(({ label, entries }) => (
+            <div
+              key={label}
+              className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex-1"
+            >
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">
+                {label}
+              </h2>
+              {entries.length === 0 ? (
+                <p className="text-slate-500 text-xs text-center">No scores yet</p>
+              ) : (
+                <ol className="space-y-1">
+                  {entries.map((entry, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <span className="text-slate-500 w-4 text-right text-xs">{i + 1}.</span>
+                      <span className="text-white flex-1 truncate">{entry.name}</span>
+                      <span className="text-yellow-400 font-bold">{entry.score}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     );
