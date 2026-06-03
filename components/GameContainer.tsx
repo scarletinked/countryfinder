@@ -10,7 +10,7 @@ import GameHUD from "./GameHUD";
 import ZoomControls from "./ZoomControls";
 import RoundResult from "./RoundResult";
 import GameOver from "./GameOver";
-import type { CountryFeature } from "@/types";
+import type { CountryFeature, LeaderboardEntry } from "@/types";
 
 const RESULT_MS = 2500;
 
@@ -18,6 +18,7 @@ export default function GameContainer() {
   const [state, dispatch] = useGameState();
   const [allCountries, setAllCountries] = useState<CountryFeature[]>([]);
   const [loadingMap, setLoadingMap] = useState(true);
+  const [homeLeaderboard, setHomeLeaderboard] = useState<LeaderboardEntry[]>([]);
   const mapRef = useRef<WorldMapHandle>(null);
 
   // Load country geodata once
@@ -27,6 +28,16 @@ export default function GameContainer() {
       setLoadingMap(false);
     });
   }, []);
+
+  // Fetch leaderboard whenever the home screen is shown
+  useEffect(() => {
+    if (state.phase !== "home") return;
+    fetch("/api/leaderboard")
+      .then((r) => r.json())
+      .then((data: { leaderboard: LeaderboardEntry[] }) =>
+        setHomeLeaderboard(data.leaderboard)
+      );
+  }, [state.phase]);
 
   // Auto-advance after round result
   useEffect(() => {
@@ -69,10 +80,16 @@ export default function GameContainer() {
     startGame(pickRandomCountries(allCountries, ROUNDS_PER_GAME));
   }, [allCountries, startGame]);
 
+  const handleReturnToMenu = useCallback(() => {
+    if (window.confirm("Return to main menu? Your current game will be lost.")) {
+      dispatch({ type: "RESET_GAME" });
+    }
+  }, [dispatch]);
+
   // ── Home screen ──────────────────────────────────────────
   if (state.phase === "home") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 gap-6 px-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 gap-6 px-4 py-10">
         <h1 className="text-5xl font-bold text-white">🦜 Homing Parrot</h1>
         <p className="text-yellow-400 text-lg italic text-center">
           It&apos;s like a Homing Pigeon, except prettier.
@@ -90,6 +107,22 @@ export default function GameContainer() {
           >
             Start Game
           </button>
+        )}
+        {homeLeaderboard.length > 0 && (
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 w-full max-w-sm">
+            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">
+              🏅 Top Scores
+            </h2>
+            <ol className="space-y-2">
+              {homeLeaderboard.map((entry, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm">
+                  <span className="text-slate-500 w-5 text-right">{i + 1}.</span>
+                  <span className="text-white flex-1 truncate">{entry.name}</span>
+                  <span className="text-yellow-400 font-bold">{entry.score}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
         )}
       </div>
     );
@@ -139,8 +172,9 @@ export default function GameContainer() {
         )}
       </div>
 
-      {/* Guess button */}
-      <div className="flex justify-center px-4 py-3 bg-slate-800 border-t border-slate-700 flex-shrink-0">
+      {/* Bottom bar */}
+      <div className="flex items-center px-4 py-3 bg-slate-800 border-t border-slate-700 flex-shrink-0">
+        <div className="flex-1" />
         <button
           onClick={handleGuess}
           disabled={!state.markerPosition || isResult}
@@ -148,6 +182,14 @@ export default function GameContainer() {
         >
           {state.markerPosition ? "Guess!" : "Click the map to place your guess"}
         </button>
+        <div className="flex-1 flex justify-end">
+          <button
+            onClick={handleReturnToMenu}
+            className="text-slate-400 hover:text-white text-sm transition-colors px-2 py-1"
+          >
+            Main Menu
+          </button>
+        </div>
       </div>
     </div>
   );
