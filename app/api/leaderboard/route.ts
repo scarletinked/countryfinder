@@ -4,7 +4,7 @@ import { getLeaderboard, addEntry } from "@/lib/leaderboard";
 import { isProfane } from "@/lib/profanity";
 
 export async function GET() {
-  return NextResponse.json({ leaderboard: getLeaderboard() });
+  return NextResponse.json({ leaderboard: await getLeaderboard() });
 }
 
 export async function POST(req: NextRequest) {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "profanity" }, { status: 400 });
   }
 
-  const leaderboard = addEntry({
+  const leaderboard = await addEntry({
     name: trimmed,
     score: Math.round(score),
     date: new Date().toISOString(),
