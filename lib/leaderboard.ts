@@ -1,11 +1,14 @@
-import { kv } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
 import type { LeaderboardEntry } from "@/types";
+
+// Reads UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN from env
+const redis = Redis.fromEnv();
 
 const KEY = "leaderboard";
 const MAX_ENTRIES = 10;
 
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
-  const scores = (await kv.get<LeaderboardEntry[]>(KEY)) ?? [];
+  const scores = (await redis.get<LeaderboardEntry[]>(KEY)) ?? [];
   return [...scores].sort((a, b) => b.score - a.score);
 }
 
@@ -20,6 +23,6 @@ export async function addEntry(entry: LeaderboardEntry): Promise<LeaderboardEntr
   scores.push(entry);
   scores.sort((a, b) => b.score - a.score);
   if (scores.length > MAX_ENTRIES) scores.pop();
-  await kv.set(KEY, scores);
+  await redis.set(KEY, scores);
   return scores;
 }
