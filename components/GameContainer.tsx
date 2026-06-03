@@ -108,11 +108,13 @@ export default function GameContainer() {
             Start Game
           </button>
         )}
-        {homeLeaderboard.length > 0 && (
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 w-full max-w-sm">
-            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">
-              🏅 Top Scores
-            </h2>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 w-full max-w-sm">
+          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">
+            🏅 Top 10 Scores
+          </h2>
+          {homeLeaderboard.length === 0 ? (
+            <p className="text-slate-500 text-sm text-center">No scores yet — be the first!</p>
+          ) : (
             <ol className="space-y-2">
               {homeLeaderboard.map((entry, i) => (
                 <li key={i} className="flex items-center gap-2 text-sm">
@@ -122,8 +124,8 @@ export default function GameContainer() {
                 </li>
               ))}
             </ol>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   }
