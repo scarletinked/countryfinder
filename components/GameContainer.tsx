@@ -73,8 +73,11 @@ export default function GameContainer() {
   if (state.phase === "home") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 gap-6 px-4">
-        <h1 className="text-5xl font-bold text-white">CountryFinder</h1>
-        <p className="text-slate-400 text-lg text-center max-w-md">
+        <h1 className="text-5xl font-bold text-white">🦜 Homing Parrot</h1>
+        <p className="text-yellow-400 text-lg italic text-center">
+          It&apos;s like a Homing Pigeon, except prettier.
+        </p>
+        <p className="text-slate-400 text-base text-center max-w-md">
           10 rounds. Find each country on the map. Score up to 100 pts for a
           direct hit, or up to 50 pts based on how close you get.
         </p>
