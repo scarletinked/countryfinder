@@ -4,6 +4,7 @@ import React, {
   useRef,
   useEffect,
   useMemo,
+  useState,
   forwardRef,
   useImperativeHandle,
 } from "react";
@@ -37,6 +38,7 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
   const gRef = useRef<SVGGElement>(null);
   const zoomBehaviorRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const onMarkerPlaceRef = useRef(onMarkerPlace);
+  const [zoomState, setZoomState] = useState({ x: 0, y: 0, k: 1 });
 
   useEffect(() => {
     onMarkerPlaceRef.current = onMarkerPlace;
@@ -78,6 +80,8 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
       .clickDistance(4)
       .on("zoom", (event) => {
         g.setAttribute("transform", event.transform.toString());
+        const { x, y, k } = event.transform;
+        setZoomState({ x, y, k });
       });
 
     zoomBehaviorRef.current = zb;
@@ -113,11 +117,17 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
     };
   }, [projection]);
 
-  // Marker pixel position (in base SVG coordinate space — the <g> zoom transform applies automatically)
+  // Marker in base SVG coordinates; then projected to SVG viewport coords (outside zoom group → fixed screen size)
   const markerPx = useMemo(
     () => (markerPosition ? projection(markerPosition) : null),
     [markerPosition, projection]
   );
+
+  const screenMarkerPx = useMemo(() => {
+    if (!markerPx) return null;
+    const [mx, my] = markerPx;
+    return [mx * zoomState.k + zoomState.x, my * zoomState.k + zoomState.y] as [number, number];
+  }, [markerPx, zoomState]);
 
   return (
     <svg
@@ -136,20 +146,28 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
             strokeWidth={0.5}
           />
         ))}
-        {markerPx && (
-          <g style={{ pointerEvents: "none" }}>
-            <circle
-              cx={markerPx[0]}
-              cy={markerPx[1]}
-              r={7}
-              fill="#ef4444"
-              stroke="white"
-              strokeWidth={2}
-            />
-            <circle cx={markerPx[0]} cy={markerPx[1]} r={2} fill="white" />
-          </g>
-        )}
       </g>
+      {screenMarkerPx && (
+        <g
+          transform={`translate(${screenMarkerPx[0]}, ${screenMarkerPx[1]})`}
+          style={{ pointerEvents: "none", filter: "drop-shadow(0 0 1.5px white)" }}
+        >
+          {/* Parrot icon — origin (0,0) is at the right foot tip (the map pin point) */}
+          <g transform="scale(1.2) translate(-57, -64)">
+            <path d="M 51,46 Q 48,52 52,59 Q 57,51 62,47 Z" fill="#1b5e20"/>
+            <ellipse cx="61" cy="46" rx="9" ry="6.5" fill="#2e7d32" transform="rotate(-20, 61, 46)"/>
+            <circle cx="70" cy="37" r="7.5" fill="#43a047"/>
+            <path d="M 67,31 Q 69,25 72,30" stroke="#e53935" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
+            <path d="M 70,30 Q 73,23 75,28" stroke="#fb8c00" strokeWidth="2" fill="none" strokeLinecap="round"/>
+            <circle cx="73" cy="35" r="2.5" fill="#0c1f36"/>
+            <circle cx="73.7" cy="34.3" r="0.9" fill="white"/>
+            <path d="M 75,36 Q 82,35 80.5,40 Q 75,40 75,36 Z" fill="#f57f17"/>
+            <line x1="75" y1="38.5" x2="80.5" y2="40" stroke="#e65100" strokeWidth="0.8"/>
+            <path d="M 56,59 Q 53,62 50,63" stroke="#5d4037" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+            <path d="M 58,60 Q 61,63 64,64" stroke="#5d4037" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+          </g>
+        </g>
+      )}
     </svg>
   );
 });
