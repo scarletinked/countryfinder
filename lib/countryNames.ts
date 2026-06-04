@@ -96,6 +96,7 @@ export const COUNTRY_NAMES: Record<number, string> = {
   250: "France",
   276: "Germany",
   300: "Greece",
+  304: "Greenland",
   348: "Hungary",
   352: "Iceland",
   372: "Ireland",
