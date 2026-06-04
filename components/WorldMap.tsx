@@ -148,24 +148,9 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
         ))}
       </g>
       {screenMarkerPx && (
-        <g
-          transform={`translate(${screenMarkerPx[0]}, ${screenMarkerPx[1]})`}
-          style={{ pointerEvents: "none", filter: "drop-shadow(0 0 1.5px white)" }}
-        >
-          {/* Parrot icon — origin (0,0) is at the right foot tip (the map pin point) */}
-          <g transform="scale(1.2) translate(-57, -64)">
-            <path d="M 51,46 Q 48,52 52,59 Q 57,51 62,47 Z" fill="#1b5e20"/>
-            <ellipse cx="61" cy="46" rx="9" ry="6.5" fill="#2e7d32" transform="rotate(-20, 61, 46)"/>
-            <circle cx="70" cy="37" r="7.5" fill="#43a047"/>
-            <path d="M 67,31 Q 69,25 72,30" stroke="#e53935" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
-            <path d="M 70,30 Q 73,23 75,28" stroke="#fb8c00" strokeWidth="2" fill="none" strokeLinecap="round"/>
-            <circle cx="73" cy="35" r="2.5" fill="#0c1f36"/>
-            <circle cx="73.7" cy="34.3" r="0.9" fill="white"/>
-            <path d="M 75,36 Q 82,35 80.5,40 Q 75,40 75,36 Z" fill="#f57f17"/>
-            <line x1="75" y1="38.5" x2="80.5" y2="40" stroke="#e65100" strokeWidth="0.8"/>
-            <path d="M 56,59 Q 53,62 50,63" stroke="#5d4037" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-            <path d="M 58,60 Q 61,63 64,64" stroke="#5d4037" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-          </g>
+        <g transform={`translate(${screenMarkerPx[0]}, ${screenMarkerPx[1]})`} style={{ pointerEvents: "none" }}>
+          <circle r={7} fill="#ef4444" stroke="white" strokeWidth={2}/>
+          <circle r={2} fill="white"/>
         </g>
       )}
     </svg>
