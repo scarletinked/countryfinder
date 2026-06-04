@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useGameState, ROUNDS_PER_GAME } from "@/hooks/useGameState";
 import { loadCountries, pickRandomCountries } from "@/lib/countries";
-import { isPointInCountry, getDistanceMilesToCountry } from "@/lib/geo-utils";
+import { isPointInCountry, getDistanceMilesToCountry, getCountryCentroid } from "@/lib/geo-utils";
 import { calculateScore } from "@/lib/scoring";
 import WorldMap, { type WorldMapHandle } from "./WorldMap";
 import GameHUD from "./GameHUD";
@@ -23,6 +23,7 @@ export default function GameContainer() {
     weekly: LeaderboardEntry[];
     daily: LeaderboardEntry[];
   } | null>(null);
+  const [parrotDestLngLat, setParrotDestLngLat] = useState<[number, number] | null>(null);
   const mapRef = useRef<WorldMapHandle>(null);
 
   // Load country geodata once
@@ -49,6 +50,11 @@ export default function GameContainer() {
     const t = setTimeout(() => dispatch({ type: "NEXT_ROUND" }), RESULT_MS);
     return () => clearTimeout(t);
   }, [state.phase, dispatch]);
+
+  // Clear parrot when leaving round-result
+  useEffect(() => {
+    if (state.phase !== "round-result") setParrotDestLngLat(null);
+  }, [state.phase]);
 
   const startGame = useCallback(
     (countries: CountryFeature[]) => {
@@ -77,6 +83,7 @@ export default function GameContainer() {
       ? 0
       : getDistanceMilesToCountry(state.markerPosition, target.feature);
     const score = calculateScore(distanceMiles, isCorrect);
+    setParrotDestLngLat(getCountryCentroid(target.feature));
     dispatch({ type: "SUBMIT_GUESS", isCorrect, distanceMiles, score });
   }, [state, dispatch]);
 
@@ -174,6 +181,7 @@ export default function GameContainer() {
           markerPosition={state.markerPosition}
           highlightId={isResult ? currentRound.targetCountry.id : null}
           onMarkerPlace={handleMarkerPlace}
+          parrotDestLngLat={parrotDestLngLat}
         />
 
         <ZoomControls

@@ -1,6 +1,11 @@
 import { geoContains, geoCentroid } from "d3-geo";
 import type { Feature, Geometry } from "geojson";
 
+export function getCountryCentroid(feature: Feature<Geometry>): [number, number] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return geoCentroid(feature as any) as [number, number];
+}
+
 export function isPointInCountry(
   lngLat: [number, number],
   feature: Feature<Geometry>
