@@ -193,7 +193,7 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
 
       if (animFrameRef.current !== null) cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = requestAnimationFrame(animate);
-    }, 700);
+    }, 1000);
 
     return () => {
       clearTimeout(timer);
