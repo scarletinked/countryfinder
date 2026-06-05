@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useGameState, ROUNDS_PER_GAME } from "@/hooks/useGameState";
 import { loadCountries, pickRandomCountries } from "@/lib/countries";
-import { isPointInCountry, getDistanceMilesToCountry, getCountryCentroid } from "@/lib/geo-utils";
+import { isPointInCountry, getDistanceMilesToCountry, getCountryCentroid, findCountryAtPoint } from "@/lib/geo-utils";
 import { calculateScore } from "@/lib/scoring";
 import WorldMap, { type WorldMapHandle } from "./WorldMap";
 import GameHUD from "./GameHUD";
@@ -12,7 +12,7 @@ import RoundResult from "./RoundResult";
 import GameOver from "./GameOver";
 import type { CountryFeature, LeaderboardEntry } from "@/types";
 
-const RESULT_MS = 2500;
+const RESULT_MS = 3000;
 
 export default function GameContainer() {
   const [state, dispatch] = useGameState();
@@ -24,6 +24,7 @@ export default function GameContainer() {
     daily: LeaderboardEntry[];
   } | null>(null);
   const [parrotDestLngLat, setParrotDestLngLat] = useState<[number, number] | null>(null);
+  const [clickedCountryName, setClickedCountryName] = useState<string | null>(null);
   const mapRef = useRef<WorldMapHandle>(null);
 
   // Load country geodata once
@@ -51,9 +52,12 @@ export default function GameContainer() {
     return () => clearTimeout(t);
   }, [state.phase, dispatch]);
 
-  // Clear parrot when leaving round-result
+  // Clear parrot and clicked country when leaving round-result
   useEffect(() => {
-    if (state.phase !== "round-result") setParrotDestLngLat(null);
+    if (state.phase !== "round-result") {
+      setParrotDestLngLat(null);
+      setClickedCountryName(null);
+    }
   }, [state.phase]);
 
   const startGame = useCallback(
@@ -83,9 +87,13 @@ export default function GameContainer() {
       ? 0
       : getDistanceMilesToCountry(state.markerPosition, target.feature);
     const score = calculateScore(distanceMiles, isCorrect);
+    if (!isCorrect) {
+      const hit = findCountryAtPoint(state.markerPosition, allCountries);
+      setClickedCountryName(hit ? hit.name : null);
+    }
     setParrotDestLngLat(getCountryCentroid(target.feature));
     dispatch({ type: "SUBMIT_GUESS", isCorrect, distanceMiles, score });
-  }, [state, dispatch]);
+  }, [state, dispatch, allCountries]);
 
   const handlePlayAgain = useCallback(() => {
     startGame(pickRandomCountries(allCountries, ROUNDS_PER_GAME));
@@ -195,6 +203,7 @@ export default function GameContainer() {
             score={currentRound.score}
             distanceMiles={currentRound.distanceMiles ?? 0}
             countryName={currentRound.targetCountry.name}
+            clickedCountryName={clickedCountryName}
           />
         )}
       </div>

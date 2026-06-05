@@ -3,6 +3,7 @@ interface RoundResultProps {
   score: number;
   distanceMiles: number;
   countryName: string;
+  clickedCountryName: string | null;
 }
 
 export default function RoundResult({
@@ -10,6 +11,7 @@ export default function RoundResult({
   score,
   distanceMiles,
   countryName,
+  clickedCountryName,
 }: RoundResultProps) {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
@@ -19,9 +21,14 @@ export default function RoundResult({
         ) : (
           <>
             <p className="text-red-400 text-lg font-bold mb-1">
-              That was {countryName}
+              No, {countryName} is over here.
             </p>
-            <p className="text-slate-300 text-sm mb-3">
+            {clickedCountryName && (
+              <p className="text-slate-300 text-sm mb-1">
+                You clicked on {clickedCountryName}.
+              </p>
+            )}
+            <p className="text-slate-400 text-sm mb-3">
               {Math.round(distanceMiles).toLocaleString()} miles away
             </p>
           </>

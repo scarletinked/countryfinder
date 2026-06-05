@@ -1,5 +1,6 @@
 import { geoContains, geoCentroid } from "d3-geo";
 import type { Feature, Geometry } from "geojson";
+import type { CountryFeature } from "@/types";
 
 export function getCountryCentroid(feature: Feature<Geometry>): [number, number] {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,6 +22,13 @@ export function getDistanceMilesToCountry(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const centroid = geoCentroid(feature as any) as [number, number];
   return haversineDistanceMiles(lngLat, centroid);
+}
+
+export function findCountryAtPoint(
+  lngLat: [number, number],
+  countries: CountryFeature[]
+): CountryFeature | null {
+  return countries.find((c) => isPointInCountry(lngLat, c.feature)) ?? null;
 }
 
 function haversineDistanceMiles(
