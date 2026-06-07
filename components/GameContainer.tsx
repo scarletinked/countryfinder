@@ -48,8 +48,10 @@ export default function GameContainer() {
   // Auto-advance after round result
   useEffect(() => {
     if (state.phase !== "round-result") return;
-    const t = setTimeout(() => dispatch({ type: "NEXT_ROUND" }), RESULT_MS);
-    return () => clearTimeout(t);
+    const zoomOutDelay = RESULT_MS - 600;
+    const t1 = setTimeout(() => mapRef.current?.zoomReset(), zoomOutDelay);
+    const t2 = setTimeout(() => dispatch({ type: "NEXT_ROUND" }), RESULT_MS);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [state.phase, dispatch]);
 
   // Clear parrot and clicked country when leaving round-result

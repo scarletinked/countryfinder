@@ -22,6 +22,7 @@ import type { CountryFeature } from "@/types";
 export interface WorldMapHandle {
   zoomIn: () => void;
   zoomOut: () => void;
+  zoomReset: () => void;
 }
 
 interface WorldMapProps {
@@ -70,6 +71,15 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
           .transition()
           .duration(250)
           .call(zb.scaleBy, 1 / 1.5);
+    },
+    zoomReset() {
+      const svg = svgRef.current;
+      const zb = zoomBehaviorRef.current;
+      if (svg && zb)
+        select(svg)
+          .transition()
+          .duration(600)
+          .call(zb.transform, zoomIdentity);
     },
   }));
 
