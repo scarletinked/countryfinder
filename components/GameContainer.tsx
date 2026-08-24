@@ -12,8 +12,6 @@ import RoundResult from "./RoundResult";
 import GameOver from "./GameOver";
 import type { CountryFeature, LeaderboardEntry } from "@/types";
 
-const RESULT_MS = 3000;
-
 export default function GameContainer() {
   const [state, dispatch] = useGameState();
   const [allCountries, setAllCountries] = useState<CountryFeature[]>([]);
@@ -44,15 +42,6 @@ export default function GameContainer() {
         setHomeLeaderboard(data)
       );
   }, [state.phase]);
-
-  // Auto-advance after round result
-  useEffect(() => {
-    if (state.phase !== "round-result") return;
-    const zoomOutDelay = RESULT_MS - 600;
-    const t1 = setTimeout(() => mapRef.current?.zoomReset(), zoomOutDelay);
-    const t2 = setTimeout(() => dispatch({ type: "NEXT_ROUND" }), RESULT_MS);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [state.phase, dispatch]);
 
   // Clear parrot and clicked country when leaving round-result
   useEffect(() => {
@@ -96,6 +85,11 @@ export default function GameContainer() {
     setParrotDestLngLat(getCountryCentroid(target.feature));
     dispatch({ type: "SUBMIT_GUESS", isCorrect, distanceMiles, score });
   }, [state, dispatch, allCountries]);
+
+  const handleNextRound = useCallback(() => {
+    mapRef.current?.zoomReset();
+    setTimeout(() => dispatch({ type: "NEXT_ROUND" }), 600);
+  }, [dispatch]);
 
   const handlePlayAgain = useCallback(() => {
     startGame(pickRandomCountries(allCountries, ROUNDS_PER_GAME));
@@ -206,6 +200,7 @@ export default function GameContainer() {
             distanceMiles={currentRound.distanceMiles ?? 0}
             countryName={currentRound.targetCountry.name}
             clickedCountryName={clickedCountryName}
+            onNext={handleNextRound}
           />
         )}
       </div>

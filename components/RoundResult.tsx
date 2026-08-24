@@ -4,6 +4,7 @@ interface RoundResultProps {
   distanceMiles: number;
   countryName: string;
   clickedCountryName: string | null;
+  onNext: () => void;
 }
 
 export default function RoundResult({
@@ -12,10 +13,14 @@ export default function RoundResult({
   distanceMiles,
   countryName,
   clickedCountryName,
+  onNext,
 }: RoundResultProps) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-      <div className="bg-slate-900/95 border border-slate-600 rounded-xl p-6 text-center min-w-56 shadow-2xl">
+    <div className="absolute inset-x-0 top-4 flex justify-center pointer-events-none z-20">
+      <button
+        onClick={onNext}
+        className="bg-slate-900/95 border border-slate-600 rounded-xl p-6 text-center min-w-56 shadow-2xl pointer-events-auto cursor-pointer hover:border-slate-400 transition-colors"
+      >
         {isCorrect ? (
           <p className="text-green-400 text-2xl font-bold mb-3">Correct! ✓</p>
         ) : (
@@ -33,8 +38,11 @@ export default function RoundResult({
             </p>
           </>
         )}
-        <p className="text-yellow-400 text-3xl font-bold">+{score} pts</p>
-      </div>
+        <p className="text-yellow-400 text-3xl font-bold mb-2">+{score} pts</p>
+        <p className="text-blue-300 text-sm font-semibold">
+          Click here for the next country →
+        </p>
+      </button>
     </div>
   );
 }
