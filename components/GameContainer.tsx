@@ -10,6 +10,7 @@ import GameHUD from "./GameHUD";
 import ZoomControls from "./ZoomControls";
 import RoundResult from "./RoundResult";
 import GameOver from "./GameOver";
+import HomeScreen from "./HomeScreen";
 import type { CountryFeature, LeaderboardEntry } from "@/types";
 
 export default function GameContainer() {
@@ -104,57 +105,12 @@ export default function GameContainer() {
   // ── Home screen ──────────────────────────────────────────
   if (state.phase === "home") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 gap-6 px-4 py-10">
-        <img src="/logo.svg" alt="Homing Parrot" className="w-80" />
-        <p className="text-yellow-400 text-lg italic text-center">
-          It&apos;s like a Homing Pigeon, except prettier.
-        </p>
-        <p className="text-slate-400 text-base text-center max-w-md">
-          10 rounds. Find each country on the map. Score up to 100 pts for a
-          direct hit, or up to 50 pts based on how close you get.
-        </p>
-        {loadingMap ? (
-          <p className="text-slate-500">Loading map data…</p>
-        ) : (
-          <button
-            onClick={handleStart}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-10 py-4 rounded-xl text-xl transition-colors shadow-lg"
-          >
-            Start Game
-          </button>
-        )}
-        <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl">
-          {(
-            [
-              { label: "☀️ Today", entries: homeLeaderboard?.daily ?? [] },
-              { label: "📅 This Week", entries: homeLeaderboard?.weekly ?? [] },
-              { label: "🏅 All Time", entries: homeLeaderboard?.allTime ?? [] },
-            ] as { label: string; entries: LeaderboardEntry[] }[]
-          ).map(({ label, entries }) => (
-            <div
-              key={label}
-              className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex-1"
-            >
-              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">
-                {label}
-              </h2>
-              {entries.length === 0 ? (
-                <p className="text-slate-500 text-xs text-center">No scores yet</p>
-              ) : (
-                <ol className="space-y-1">
-                  {entries.map((entry, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
-                      <span className="text-slate-500 w-4 text-right text-xs">{i + 1}.</span>
-                      <span className="text-white flex-1 truncate">{entry.name}</span>
-                      <span className="text-yellow-400 font-bold">{entry.score}</span>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      <HomeScreen
+        countries={allCountries}
+        loading={loadingMap}
+        leaderboard={homeLeaderboard}
+        onStart={handleStart}
+      />
     );
   }
 
