@@ -89,15 +89,20 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
               <button
                 onClick={() => onStart("polly")}
                 disabled={loading}
-                className="group flex flex-col items-start rounded-2xl border border-amber-300/30 bg-amber-300/5 px-5 py-2.5 text-left transition hover:border-amber-300/60 hover:bg-amber-300/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+                className="group flex items-center gap-4 rounded-2xl border border-amber-300/30 bg-amber-300/5 px-5 py-2.5 text-left transition hover:border-amber-300/60 hover:bg-amber-300/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
               >
-                <span className="flex items-center gap-2 font-semibold text-amber-200">
-                  {MODE_LABELS.polly}
-                  <span className="rounded-full bg-amber-300/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                    Harder
+                <span className="flex flex-col items-start">
+                  <span className="flex items-center gap-2 font-semibold text-amber-200">
+                    {MODE_LABELS.polly}
+                    <span className="rounded-full bg-amber-300/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                      Harder
+                    </span>
                   </span>
+                  <span className="text-xs text-slate-400">Find the country from its capital</span>
                 </span>
-                <span className="text-xs text-slate-400">Find the country from its capital</span>
+                {!loading && (
+                  <span className="text-lg text-amber-200 transition-transform group-hover:translate-x-1">→</span>
+                )}
               </button>
             </div>
           </div>

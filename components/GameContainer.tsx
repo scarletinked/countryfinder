@@ -113,6 +113,7 @@ export default function GameContainer() {
         mode={state.mode}
         totalScore={state.totalScore}
         onPlayAgain={() => startGame(state.mode)}
+        onHome={() => dispatch({ type: "RESET_GAME" })}
       />
     );
   }

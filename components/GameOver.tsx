@@ -8,6 +8,7 @@ interface GameOverProps {
   mode: GameMode;
   totalScore: number;
   onPlayAgain: () => void;
+  onHome: () => void;
 }
 
 const MAX_ENTRIES = 10;
@@ -16,7 +17,7 @@ function qualifiesFor(board: LeaderboardEntry[], score: number): boolean {
   return board.length < MAX_ENTRIES || score > board[board.length - 1].score;
 }
 
-export default function GameOver({ mode, totalScore, onPlayAgain }: GameOverProps) {
+export default function GameOver({ mode, totalScore, onPlayAgain, onHome }: GameOverProps) {
   const [boards, setBoards] = useState<Boards>({ allTime: [], weekly: [], daily: [] });
   const [qualifies, setQualifies] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -76,7 +77,13 @@ export default function GameOver({ mode, totalScore, onPlayAgain }: GameOverProp
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 px-4 py-8">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-slate-900 px-4 pt-20 pb-8">
+      <button
+        onClick={onHome}
+        className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/60 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
+      >
+        ← Home
+      </button>
       <p className="text-sm font-semibold uppercase tracking-widest text-slate-400 mb-1">
         {MODE_LABELS[mode]}
       </p>
