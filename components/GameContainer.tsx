@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { useGameState, ROUNDS_PER_GAME } from "@/hooks/useGameState";
 import { loadCountries } from "@/lib/countries";
 import { pickCountryForTier, HITS_TO_ADVANCE, TIER_LABELS } from "@/lib/difficulty";
-import { isPointInCountry, getDistanceMilesToCountry, getCountryCentroid, findCountryAtPoint } from "@/lib/geo-utils";
+import { getDistanceMilesToCountry, getCountryCentroid } from "@/lib/geo-utils";
 import { calculateScore } from "@/lib/scoring";
 import WorldMap, { type WorldMapHandle } from "./WorldMap";
 import GameHUD from "./GameHUD";
@@ -15,6 +15,9 @@ import HomeScreen from "./HomeScreen";
 import { CAPITALS } from "@/lib/capitals";
 import { MODES } from "@/lib/modes";
 import type { CountryFeature, GameMode, Leaderboards } from "@/types";
+
+// How far outside the target's outline, in on-screen pixels, a guess still counts as a hit
+const TAP_TOLERANCE_PX = 6;
 
 export default function GameContainer() {
   const [state, dispatch] = useGameState();
@@ -67,13 +70,20 @@ export default function GameContainer() {
   const handleGuess = useCallback(() => {
     if (!state.markerPosition || state.phase !== "playing") return;
     const target = state.rounds[state.currentRound].targetCountry;
-    const isCorrect = isPointInCountry(state.markerPosition, target.feature);
+    // Judge only by the shapes as drawn, so the result always matches what the player sees
+    const drawnIds = mapRef.current?.countryIdsAt(state.markerPosition) ?? [];
+    const hit = allCountries.find((c) => c.id === drawnIds.find((id) => id !== target.id)) ?? null;
+    // A tap on sea just outside the target still counts; a tap inside a different country never does
+    const isCorrect =
+      drawnIds.includes(target.id) ||
+      (drawnIds.length === 0 &&
+        (mapRef.current?.screenDistancePx(state.markerPosition, target.feature) ?? Infinity) <=
+          TAP_TOLERANCE_PX);
     const distanceMiles = isCorrect
       ? 0
       : getDistanceMilesToCountry(state.markerPosition, target.feature);
     const score = calculateScore(distanceMiles, isCorrect);
     if (!isCorrect) {
-      const hit = findCountryAtPoint(state.markerPosition, allCountries);
       setClickedCountryName(hit ? hit.name : null);
     }
     setParrotDestLngLat(getCountryCentroid(target.feature));

@@ -17,12 +17,18 @@ import {
   select,
   ZoomBehavior,
 } from "d3";
+import type { Feature, Geometry } from "geojson";
 import type { CountryFeature } from "@/types";
+import { distanceToOutline } from "@/lib/geo-utils";
 
 export interface WorldMapHandle {
   zoomIn: () => void;
   zoomOut: () => void;
   zoomReset: () => void;
+  // On-screen distance in CSS pixels from a point to a country's outline at the current zoom
+  screenDistancePx: (lngLat: [number, number], feature: Feature<Geometry>) => number;
+  // Ids of the countries whose drawn shape covers a point
+  countryIdsAt: (lngLat: [number, number]) => number[];
 }
 
 interface WorldMapProps {
@@ -80,6 +86,22 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
           .transition()
           .duration(600)
           .call(zb.transform, zoomIdentity);
+    },
+    screenDistancePx(lngLat, feature) {
+      const svg = svgRef.current;
+      const point = projection(lngLat);
+      if (!svg || !point) return Infinity;
+      const pxPerUnit = (svg.getScreenCTM()?.a ?? 1) * zoomStateRef.current.k;
+      return distanceToOutline(point, feature, (c) => projection(c)) * pxPerUnit;
+    },
+    countryIdsAt(lngLat) {
+      const g = gRef.current;
+      const point = projection(lngLat);
+      if (!g || !point) return [];
+      const pt = new DOMPoint(point[0], point[1]);
+      return Array.from(g.querySelectorAll<SVGPathElement>("path[data-id]"))
+        .filter((el) => el.isPointInFill(pt))
+        .map((el) => Number(el.dataset.id));
     },
   }));
 
@@ -237,10 +259,13 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
         {features.map((f) => (
           <path
             key={f.id}
+            data-id={f.id}
             d={pathGen(f.feature) ?? ""}
             fill={highlightId === f.id ? "#22c55e" : "#475569"}
             stroke={highlightId === f.id ? "#86efac" : "#64748b"}
-            strokeWidth={0.5}
+            strokeWidth={0.75}
+            // Keep borders a hairline at every zoom so small countries aren't mostly border
+            vectorEffect="non-scaling-stroke"
           />
         ))}
       </g>
