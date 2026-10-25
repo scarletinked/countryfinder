@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useGameState, ROUNDS_PER_GAME } from "@/hooks/useGameState";
-import { loadCountries, pickRandomCountries } from "@/lib/countries";
+import { loadCountries } from "@/lib/countries";
+import { pickCountryForTier, HITS_TO_ADVANCE, TIER_LABELS } from "@/lib/difficulty";
 import { isPointInCountry, getDistanceMilesToCountry, getCountryCentroid, findCountryAtPoint } from "@/lib/geo-utils";
 import { calculateScore } from "@/lib/scoring";
 import WorldMap, { type WorldMapHandle } from "./WorldMap";
@@ -52,16 +53,10 @@ export default function GameContainer() {
     }
   }, [state.phase]);
 
-  const startGame = useCallback(
-    (countries: CountryFeature[]) => {
-      dispatch({ type: "START_GAME", countries });
-    },
-    [dispatch]
-  );
+  const startGame = useCallback(() => {
+    dispatch({ type: "START_GAME", country: pickCountryForTier(allCountries, "easy", new Set()) });
+  }, [allCountries, dispatch]);
 
-  const handleStart = useCallback(() => {
-    startGame(pickRandomCountries(allCountries, ROUNDS_PER_GAME));
-  }, [allCountries, startGame]);
 
   const handleMarkerPlace = useCallback(
     (lngLat: [number, number]) => {
@@ -73,7 +68,7 @@ export default function GameContainer() {
 
   const handleGuess = useCallback(() => {
     if (!state.markerPosition || state.phase !== "playing") return;
-    const target = state.countries[state.currentRound];
+    const target = state.rounds[state.currentRound].targetCountry;
     const isCorrect = isPointInCountry(state.markerPosition, target.feature);
     const distanceMiles = isCorrect
       ? 0
@@ -88,13 +83,12 @@ export default function GameContainer() {
   }, [state, dispatch, allCountries]);
 
   const handleNextRound = useCallback(() => {
+    const used = new Set(state.rounds.map((r) => r.targetCountry.id));
+    const country = pickCountryForTier(allCountries, state.tier, used);
     mapRef.current?.zoomReset();
-    setTimeout(() => dispatch({ type: "NEXT_ROUND" }), 600);
-  }, [dispatch]);
+    setTimeout(() => dispatch({ type: "NEXT_ROUND", country }), 600);
+  }, [state.rounds, state.tier, allCountries, dispatch]);
 
-  const handlePlayAgain = useCallback(() => {
-    startGame(pickRandomCountries(allCountries, ROUNDS_PER_GAME));
-  }, [allCountries, startGame]);
 
   const handleReturnToMenu = useCallback(() => {
     if (window.confirm("Return to main menu? Your current game will be lost.")) {
@@ -109,7 +103,7 @@ export default function GameContainer() {
         countries={allCountries}
         loading={loadingMap}
         leaderboard={homeLeaderboard}
-        onStart={handleStart}
+        onStart={startGame}
       />
     );
   }
@@ -117,7 +111,7 @@ export default function GameContainer() {
   // ── Game Over ─────────────────────────────────────────────
   if (state.phase === "game-over") {
     return (
-      <GameOver totalScore={state.totalScore} onPlayAgain={handlePlayAgain} />
+      <GameOver totalScore={state.totalScore} onPlayAgain={startGame} />
     );
   }
 
@@ -132,6 +126,8 @@ export default function GameContainer() {
         currentRound={state.currentRound + 1}
         totalRounds={ROUNDS_PER_GAME}
         totalScore={state.totalScore}
+        tier={currentRound.tier}
+        streak={currentRound.tier !== state.tier ? HITS_TO_ADVANCE : state.streak}
       />
 
       <div className="relative flex-1 overflow-hidden">
@@ -156,6 +152,7 @@ export default function GameContainer() {
             distanceMiles={currentRound.distanceMiles ?? 0}
             countryName={currentRound.targetCountry.name}
             clickedCountryName={clickedCountryName}
+            levelUpTo={currentRound.tier !== state.tier ? TIER_LABELS[state.tier] : null}
             onNext={handleNextRound}
           />
         )}

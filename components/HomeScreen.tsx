@@ -75,6 +75,7 @@ export default function HomeScreen({ countries, loading, leaderboard, onStart }:
             <div className="flex flex-wrap gap-2 text-sm">
               <Stat value="100" label="pts for a direct hit" />
               <Stat value="50" label="pts max if you're close" />
+              <Stat value="2" label="in a row to level up" />
             </div>
 
             <div className="flex items-center gap-4 pt-2">

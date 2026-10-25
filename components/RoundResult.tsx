@@ -4,6 +4,7 @@ interface RoundResultProps {
   distanceMiles: number;
   countryName: string;
   clickedCountryName: string | null;
+  levelUpTo: string | null;
   onNext: () => void;
 }
 
@@ -13,6 +14,7 @@ export default function RoundResult({
   distanceMiles,
   countryName,
   clickedCountryName,
+  levelUpTo,
   onNext,
 }: RoundResultProps) {
   return (
@@ -39,6 +41,11 @@ export default function RoundResult({
           </>
         )}
         <p className="text-yellow-400 text-3xl font-bold mb-2">+{score} pts</p>
+        {levelUpTo && (
+          <p className="text-emerald-300 text-sm font-semibold mb-2">
+            Level up! Next up: {levelUpTo} countries
+          </p>
+        )}
         <p className="text-blue-300 text-sm font-semibold">
           Click here for the next country →
         </p>

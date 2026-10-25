@@ -51,15 +51,3 @@ export async function loadCountries(): Promise<CountryFeature[]> {
   cached = Array.from(byId.values());
   return cached;
 }
-
-export function pickRandomCountries(
-  countries: CountryFeature[],
-  n: number
-): CountryFeature[] {
-  const arr = [...countries];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr.slice(0, n);
-}
