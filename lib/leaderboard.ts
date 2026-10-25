@@ -49,6 +49,7 @@ export async function getDailyLeaderboard(mode: GameMode): Promise<LeaderboardEn
 }
 
 export async function isQualifying(mode: GameMode, score: number): Promise<boolean> {
+  if (score <= 0) return false;
   const [allTime, weekly, daily] = await Promise.all([
     getLeaderboard(mode),
     getWeeklyLeaderboard(mode),

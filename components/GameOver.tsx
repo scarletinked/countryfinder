@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { GameMode, LeaderboardEntry, Leaderboards as Boards } from "@/types";
+import type { GameMode, GameRound, LeaderboardEntry, Leaderboards as Boards } from "@/types";
 import { MODE_LABELS } from "@/lib/modes";
+import { display } from "@/lib/fonts";
+import LeaderboardCard from "./LeaderboardCard";
 
 interface GameOverProps {
   mode: GameMode;
   totalScore: number;
+  rounds: GameRound[];
   onPlayAgain: () => void;
   onHome: () => void;
 }
@@ -14,16 +17,15 @@ interface GameOverProps {
 const MAX_ENTRIES = 10;
 
 function qualifiesFor(board: LeaderboardEntry[], score: number): boolean {
-  return board.length < MAX_ENTRIES || score > board[board.length - 1].score;
+  return score > 0 && (board.length < MAX_ENTRIES || score > board[board.length - 1].score);
 }
 
-export default function GameOver({ mode, totalScore, onPlayAgain, onHome }: GameOverProps) {
-  const [boards, setBoards] = useState<Boards>({ allTime: [], weekly: [], daily: [] });
+export default function GameOver({ mode, totalScore, rounds, onPlayAgain, onHome }: GameOverProps) {
+  const [boards, setBoards] = useState<Boards | null>(null);
   const [qualifies, setQualifies] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [error, setError] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [savedName, setSavedName] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -36,7 +38,6 @@ export default function GameOver({ mode, totalScore, onPlayAgain, onHome }: Game
           qualifiesFor(data.weekly, totalScore) ||
           qualifiesFor(data.daily, totalScore)
         );
-        setLoading(false);
       });
   }, [mode, totalScore]);
 
@@ -67,99 +68,109 @@ export default function GameOver({ mode, totalScore, onPlayAgain, onHome }: Game
     }
 
     setBoards(data);
-    setSubmitted(true);
+    setSavedName(name.slice(0, 30));
   }
 
-  const sections: { label: string; entries: LeaderboardEntry[] }[] = [
-    { label: "☀️ Today", entries: boards.daily },
-    { label: "📅 This Week", entries: boards.weekly },
-    { label: "🏅 All Time", entries: boards.allTime },
-  ];
+  const hits = rounds.filter((r) => r.isCorrect).length;
+  const isPolly = mode === "polly";
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-slate-900 px-4 pt-20 pb-8">
-      <button
-        onClick={onHome}
-        className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/60 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
-      >
-        ← Home
-      </button>
-      <p className="text-sm font-semibold uppercase tracking-widest text-slate-400 mb-1">
-        {MODE_LABELS[mode]}
-      </p>
-      <h1 className="text-4xl font-bold text-white mb-2">Game Over</h1>
-      <p className="text-2xl text-yellow-400 font-bold mb-8">
-        Your score: {totalScore} / 1000
-      </p>
+    <div className="relative min-h-screen overflow-hidden bg-[#060a13] text-slate-100">
+      {/* Ambient glows */}
+      <div className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-teal-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-[380px] w-[480px] rounded-full bg-amber-400/5 blur-3xl" />
 
-      {/* Name entry */}
-      {qualifies && !submitted && !loading && (
-        <div className="bg-slate-800 border border-slate-600 rounded-xl p-6 mb-8 w-full max-w-sm">
-          <p className="text-green-400 font-bold text-lg mb-3 text-center">
-            🏆 You made the leaderboard!
-          </p>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-            <input
-              type="text"
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              placeholder="Enter your name"
-              maxLength={30}
-              className="bg-slate-700 border border-slate-500 text-white rounded px-3 py-2 placeholder-slate-400 focus:outline-none focus:border-yellow-400"
-              autoFocus
-            />
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={submitting || !nameInput.trim()}
-              className="bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-600 disabled:text-slate-400 text-slate-900 font-bold py-2 rounded transition-colors"
-            >
-              {submitting ? "Saving…" : "Save Score"}
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* Leaderboards */}
-      <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl mb-8">
-        {sections.map(({ label, entries }) => (
-          <div
-            key={label}
-            className="bg-slate-800 border border-slate-600 rounded-xl p-4 flex-1"
+      <div className="relative mx-auto flex max-w-xl flex-col gap-6 px-4 py-6 sm:gap-8 sm:py-8">
+        {/* Top bar */}
+        <header className="flex items-center justify-between gap-3">
+          <button
+            onClick={onHome}
+            className="group flex items-center gap-3 rounded-full py-1 pr-3 text-slate-300 transition hover:text-white"
           >
-            <h2 className="text-sm font-bold text-white mb-3 text-center">{label}</h2>
-            {loading ? (
-              <p className="text-slate-400 text-center text-sm">Loading…</p>
-            ) : entries.length === 0 ? (
-              <p className="text-slate-400 text-center text-sm">No scores yet</p>
-            ) : (
-              <ol className="space-y-1">
-                {entries.map((entry, i) => (
-                  <li
-                    key={i}
-                    className={`flex items-center gap-2 px-2 py-1 rounded text-sm ${
-                      entry.score === totalScore && submitted
-                        ? "bg-yellow-500/20 border border-yellow-500/40"
-                        : ""
-                    }`}
-                  >
-                    <span className="text-slate-400 w-5 text-xs">{i + 1}.</span>
-                    <span className="text-white flex-1 truncate">{entry.name}</span>
-                    <span className="text-yellow-400 font-bold">{entry.score}</span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        ))}
-      </div>
+            <span className="transition-transform group-hover:-translate-x-1">←</span>
+            <img src="/icon.svg" alt="" className="h-8 w-8" />
+            <span className={`${display.className} font-bold tracking-tight`}>Home</span>
+          </button>
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-medium ${
+              isPolly
+                ? "border-amber-300/30 bg-amber-300/10 text-amber-200"
+                : "border-teal-400/25 bg-teal-400/10 text-teal-300"
+            }`}
+          >
+            {MODE_LABELS[mode]}
+          </span>
+        </header>
 
-      <button
-        onClick={onPlayAgain}
-        className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-lg text-lg transition-colors"
-      >
-        Play Again
-      </button>
+        {/* Score */}
+        <section className="flex flex-col items-center gap-3 pt-2 text-center">
+          <p className="text-sm font-medium uppercase tracking-widest text-slate-400">Game over</p>
+          <p className={`${display.className} text-7xl font-bold leading-none tracking-tight sm:text-8xl`}>
+            <span className="bg-gradient-to-r from-teal-300 via-emerald-300 to-amber-300 bg-clip-text text-transparent">
+              {totalScore}
+            </span>
+          </p>
+          <p className="text-slate-400">
+            out of 1000 · {hits} of {rounds.length} found
+          </p>
+          <div className="mt-1 flex gap-1.5" aria-label="Round results">
+            {rounds.map((r) => (
+              <span
+                key={r.roundNumber}
+                title={`${r.targetCountry.name}: ${r.score ?? 0} pts`}
+                className={`h-2.5 w-2.5 rounded-full ${
+                  r.isCorrect ? "bg-emerald-400" : (r.score ?? 0) > 0 ? "bg-amber-300" : "bg-white/15"
+                }`}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Name entry */}
+        {qualifies && !savedName && (
+          <section className="rounded-3xl border border-amber-300/25 bg-amber-300/[0.06] p-5 sm:p-6">
+            <p className={`${display.className} mb-1 text-lg font-bold text-amber-200`}>
+              You made the leaderboard!
+            </p>
+            <p className="mb-4 text-sm text-slate-400">Add your name to claim your spot.</p>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder="Your name"
+                maxLength={30}
+                className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate-500 outline-none transition focus:border-amber-300/60"
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={submitting || !nameInput.trim()}
+                className="rounded-full bg-amber-300 px-6 py-3 font-semibold text-slate-950 transition hover:brightness-110 disabled:bg-white/10 disabled:text-slate-500"
+              >
+                {submitting ? "Saving…" : "Save score"}
+              </button>
+            </form>
+            {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
+          </section>
+        )}
+
+        {/* Actions */}
+        <div className="flex flex-wrap justify-center gap-3">
+          <button
+            onClick={onPlayAgain}
+            className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 px-8 py-4 text-lg font-semibold text-slate-950 shadow-[0_10px_40px_-10px_rgba(45,212,191,0.6)] transition hover:brightness-110 active:scale-[0.98]"
+          >
+            Play again
+            <span className="transition-transform group-hover:translate-x-1">→</span>
+          </button>
+        </div>
+
+        <LeaderboardCard
+          leaderboard={boards}
+          isHighlighted={(e) => savedName !== null && e.name === savedName && e.score === totalScore}
+        />
+      </div>
     </div>
   );
 }

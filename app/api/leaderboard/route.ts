@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_mode" }, { status: 400 });
   }
 
-  if (typeof score !== "number" || !isFinite(score) || score < 0 || score > 1000) {
+  if (typeof score !== "number" || !isFinite(score) || score <= 0 || score > 1000) {
     return NextResponse.json({ error: "invalid_score" }, { status: 400 });
   }
 

@@ -1,22 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Space_Grotesk } from "next/font/google";
 import * as d3 from "d3";
 import type { CountryFeature, GameMode, Leaderboards } from "@/types";
 import { MODES, MODE_LABELS } from "@/lib/modes";
-
-const display = Space_Grotesk({ subsets: ["latin"], weight: ["500", "700"] });
-
-type BoardKey = keyof Leaderboards;
-
-const TABS: { key: BoardKey; label: string }[] = [
-  { key: "daily", label: "Today" },
-  { key: "weekly", label: "This week" },
-  { key: "allTime", label: "All time" },
-];
-
-const MEDALS = ["#f5c84c", "#cbd5e1", "#d4925a"];
+import { display } from "@/lib/fonts";
+import LeaderboardCard from "./LeaderboardCard";
 
 interface HomeScreenProps {
   countries: CountryFeature[];
@@ -26,11 +15,9 @@ interface HomeScreenProps {
 }
 
 export default function HomeScreen({ countries, loading, leaderboards, onStart }: HomeScreenProps) {
-  const [tab, setTab] = useState<BoardKey>("daily");
   const [boardMode, setBoardMode] = useState<GameMode>("standard");
   const [featured, setFeatured] = useState<string | null>(null);
   const leaderboard = leaderboards?.[boardMode] ?? null;
-  const entries = leaderboard?.[tab] ?? [];
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#060a13] text-slate-100">
@@ -122,73 +109,28 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
 
         {/* Leaderboard */}
         <section className="mx-auto w-full max-w-xl">
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl sm:p-6">
-            <div className="mb-4 flex rounded-xl bg-white/5 p-1 text-sm">
-              {MODES.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setBoardMode(m)}
-                  className={`flex-1 rounded-lg px-3 py-1.5 font-medium transition ${
-                    boardMode === m
-                      ? m === "polly"
-                        ? "bg-amber-300/15 text-amber-200"
-                        : "bg-teal-400/15 text-teal-200"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  {MODE_LABELS[m]}
-                </button>
-              ))}
-            </div>
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <h2 className={`${display.className} text-xl font-bold`}>Leaderboard</h2>
-              <div className="flex rounded-full bg-white/5 p-1 text-xs sm:text-sm">
-                {TABS.map((t) => (
+          <LeaderboardCard
+            leaderboard={leaderboard}
+            header={
+              <div className="mb-4 flex rounded-xl bg-white/5 p-1 text-sm">
+                {MODES.map((m) => (
                   <button
-                    key={t.key}
-                    onClick={() => setTab(t.key)}
-                    className={`whitespace-nowrap rounded-full px-3 py-1.5 font-medium transition ${
-                      tab === t.key ? "bg-white text-slate-950" : "text-slate-400 hover:text-white"
+                    key={m}
+                    onClick={() => setBoardMode(m)}
+                    className={`flex-1 rounded-lg px-3 py-1.5 font-medium transition ${
+                      boardMode === m
+                        ? m === "polly"
+                          ? "bg-amber-300/15 text-amber-200"
+                          : "bg-teal-400/15 text-teal-200"
+                        : "text-slate-400 hover:text-white"
                     }`}
                   >
-                    {t.label}
+                    {MODE_LABELS[m]}
                   </button>
                 ))}
               </div>
-            </div>
-
-            {!leaderboard ? (
-              <p className="py-8 text-center text-sm text-slate-500">Loading scores…</p>
-            ) : entries.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">
-                No scores yet. Be the first.
-              </p>
-            ) : (
-              <ol className="flex flex-col gap-1">
-                {entries.map((entry, i) => (
-                  <li
-                    key={i}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-white/5"
-                  >
-                    <span
-                      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                      style={
-                        i < 3
-                          ? { background: MEDALS[i], color: "#0f172a" }
-                          : { background: "rgba(255,255,255,0.06)", color: "#94a3b8" }
-                      }
-                    >
-                      {i + 1}
-                    </span>
-                    <span className="flex-1 truncate">{entry.name}</span>
-                    <span className={`${display.className} font-bold tabular-nums text-teal-300`}>
-                      {entry.score}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
+            }
+          />
         </section>
       </div>
     </div>

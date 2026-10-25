@@ -112,6 +112,7 @@ export default function GameContainer() {
       <GameOver
         mode={state.mode}
         totalScore={state.totalScore}
+        rounds={state.rounds}
         onPlayAgain={() => startGame(state.mode)}
         onHome={() => dispatch({ type: "RESET_GAME" })}
       />
