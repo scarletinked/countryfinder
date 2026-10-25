@@ -5,6 +5,7 @@ import * as d3 from "d3";
 import type { CountryFeature, GameMode, Leaderboards } from "@/types";
 import { MODES, MODE_LABELS } from "@/lib/modes";
 import { display } from "@/lib/fonts";
+import { getLandmarkPoint } from "@/lib/geo-utils";
 import LeaderboardCard from "./LeaderboardCard";
 
 interface HomeScreenProps {
@@ -184,6 +185,7 @@ function Globe({
 
     let rotation: [number, number] = [0, -15];
     let target: CountryFeature | null = null;
+    let targetPoint: [number, number] = [0, 0];
     let from = rotation;
     let to = rotation;
     let tweenStart = 0;
@@ -191,7 +193,8 @@ function Globe({
 
     const pickNext = (now: number) => {
       target = candidates[Math.floor(Math.random() * candidates.length)];
-      const [lng, lat] = d3.geoCentroid(target.feature);
+      targetPoint = getLandmarkPoint(target.feature);
+      const [lng, lat] = targetPoint;
       from = rotation;
       // Take the short way round
       let dLng = -lng - from[0];
@@ -246,7 +249,7 @@ function Globe({
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        const p = projection(d3.geoCentroid(target.feature));
+        const p = projection(targetPoint);
         if (p && t === 1) {
           const pulse = ((now - tweenStart - TWEEN_MS) % 1600) / 1600;
           ctx.beginPath();

@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { useGameState, ROUNDS_PER_GAME } from "@/hooks/useGameState";
 import { loadCountries } from "@/lib/countries";
 import { pickCountryForTier, HITS_TO_ADVANCE, TIER_LABELS } from "@/lib/difficulty";
-import { getDistanceMilesToCountry, getCountryCentroid } from "@/lib/geo-utils";
+import { getDistanceMilesToCountry, getLandmarkPoint } from "@/lib/geo-utils";
 import { calculateScore } from "@/lib/scoring";
 import WorldMap, { type WorldMapHandle } from "./WorldMap";
 import GameHUD from "./GameHUD";
@@ -86,7 +86,7 @@ export default function GameContainer() {
     if (!isCorrect) {
       setClickedCountryName(hit ? hit.name : null);
     }
-    setParrotDestLngLat(getCountryCentroid(target.feature));
+    setParrotDestLngLat(getLandmarkPoint(target.feature));
     dispatch({ type: "SUBMIT_GUESS", isCorrect, distanceMiles, score });
   }, [state, dispatch, allCountries]);
 
