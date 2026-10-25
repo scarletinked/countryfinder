@@ -12,17 +12,15 @@ import ZoomControls from "./ZoomControls";
 import RoundResult from "./RoundResult";
 import GameOver from "./GameOver";
 import HomeScreen from "./HomeScreen";
-import type { CountryFeature, LeaderboardEntry } from "@/types";
+import { CAPITALS } from "@/lib/capitals";
+import { MODES } from "@/lib/modes";
+import type { CountryFeature, GameMode, Leaderboards } from "@/types";
 
 export default function GameContainer() {
   const [state, dispatch] = useGameState();
   const [allCountries, setAllCountries] = useState<CountryFeature[]>([]);
   const [loadingMap, setLoadingMap] = useState(true);
-  const [homeLeaderboard, setHomeLeaderboard] = useState<{
-    allTime: LeaderboardEntry[];
-    weekly: LeaderboardEntry[];
-    daily: LeaderboardEntry[];
-  } | null>(null);
+  const [homeLeaderboards, setHomeLeaderboards] = useState<Record<GameMode, Leaderboards> | null>(null);
   const [parrotDestLngLat, setParrotDestLngLat] = useState<[number, number] | null>(null);
   const [clickedCountryName, setClickedCountryName] = useState<string | null>(null);
   const mapRef = useRef<WorldMapHandle>(null);
@@ -35,14 +33,12 @@ export default function GameContainer() {
     });
   }, []);
 
-  // Fetch leaderboard whenever the home screen is shown
+  // Fetch both modes' leaderboards whenever the home screen is shown
   useEffect(() => {
     if (state.phase !== "home") return;
-    fetch("/api/leaderboard")
-      .then((r) => r.json())
-      .then((data: { allTime: LeaderboardEntry[]; weekly: LeaderboardEntry[]; daily: LeaderboardEntry[] }) =>
-        setHomeLeaderboard(data)
-      );
+    Promise.all(
+      MODES.map((m) => fetch(`/api/leaderboard?mode=${m}`).then((r) => r.json() as Promise<Leaderboards>))
+    ).then(([standard, polly]) => setHomeLeaderboards({ standard, polly }));
   }, [state.phase]);
 
   // Clear parrot and clicked country when leaving round-result
@@ -53,10 +49,12 @@ export default function GameContainer() {
     }
   }, [state.phase]);
 
-  const startGame = useCallback(() => {
-    dispatch({ type: "START_GAME", country: pickCountryForTier(allCountries, "easy", new Set()) });
-  }, [allCountries, dispatch]);
-
+  const startGame = useCallback(
+    (mode: GameMode) => {
+      dispatch({ type: "START_GAME", mode, country: pickCountryForTier(allCountries, "easy", new Set()) });
+    },
+    [allCountries, dispatch]
+  );
 
   const handleMarkerPlace = useCallback(
     (lngLat: [number, number]) => {
@@ -102,7 +100,7 @@ export default function GameContainer() {
       <HomeScreen
         countries={allCountries}
         loading={loadingMap}
-        leaderboard={homeLeaderboard}
+        leaderboards={homeLeaderboards}
         onStart={startGame}
       />
     );
@@ -111,18 +109,23 @@ export default function GameContainer() {
   // ── Game Over ─────────────────────────────────────────────
   if (state.phase === "game-over") {
     return (
-      <GameOver totalScore={state.totalScore} onPlayAgain={startGame} />
+      <GameOver
+        mode={state.mode}
+        totalScore={state.totalScore}
+        onPlayAgain={() => startGame(state.mode)}
+      />
     );
   }
 
   // ── Playing / Round Result ────────────────────────────────
   const currentRound = state.rounds[state.currentRound];
   const isResult = state.phase === "round-result";
+  const capital = state.mode === "polly" ? CAPITALS[currentRound.targetCountry.name] : null;
 
   return (
     <div className="flex flex-col h-dvh bg-slate-900">
       <GameHUD
-        countryName={currentRound.targetCountry.name}
+        prompt={capital ? `Find ${capital}'s country` : currentRound.targetCountry.name}
         currentRound={state.currentRound + 1}
         totalRounds={ROUNDS_PER_GAME}
         totalScore={state.totalScore}
@@ -151,6 +154,7 @@ export default function GameContainer() {
             score={currentRound.score}
             distanceMiles={currentRound.distanceMiles ?? 0}
             countryName={currentRound.targetCountry.name}
+            capital={capital}
             clickedCountryName={clickedCountryName}
             levelUpTo={currentRound.tier !== state.tier ? TIER_LABELS[state.tier] : null}
             onNext={handleNextRound}

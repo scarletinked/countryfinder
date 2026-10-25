@@ -2,12 +2,18 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getLeaderboard, getWeeklyLeaderboard, getDailyLeaderboard, addEntry } from "@/lib/leaderboard";
 import { isProfane } from "@/lib/profanity";
+import { isGameMode } from "@/lib/modes";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const param = req.nextUrl.searchParams.get("mode") ?? "standard";
+  if (!isGameMode(param)) {
+    return NextResponse.json({ error: "invalid_mode" }, { status: 400 });
+  }
+
   const [allTime, weekly, daily] = await Promise.all([
-    getLeaderboard(),
-    getWeeklyLeaderboard(),
-    getDailyLeaderboard(),
+    getLeaderboard(param),
+    getWeeklyLeaderboard(param),
+    getDailyLeaderboard(param),
   ]);
   return NextResponse.json({ allTime, weekly, daily });
 }
@@ -18,7 +24,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }
 
-  const { name, score } = body as { name?: unknown; score?: unknown };
+  const { name, score, mode = "standard" } = body as { name?: unknown; score?: unknown; mode?: unknown };
+
+  if (!isGameMode(mode)) {
+    return NextResponse.json({ error: "invalid_mode" }, { status: 400 });
+  }
 
   if (typeof score !== "number" || !isFinite(score) || score < 0 || score > 1000) {
     return NextResponse.json({ error: "invalid_score" }, { status: 400 });
@@ -34,7 +44,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "profanity" }, { status: 400 });
   }
 
-  const { allTime, weekly, daily } = await addEntry({
+  const { allTime, weekly, daily } = await addEntry(mode, {
     name: trimmed,
     score: Math.round(score),
     date: new Date().toISOString(),

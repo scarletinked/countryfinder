@@ -1,15 +1,18 @@
 import { Redis } from "@upstash/redis";
 import { startOfDay, startOfWeek } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
-import type { LeaderboardEntry } from "@/types";
+import type { GameMode, LeaderboardEntry, Leaderboards } from "@/types";
 
 const redis = Redis.fromEnv();
 
-const KEY = "leaderboard";
-const WEEK_KEY = "leaderboard:week";
-const DAY_KEY = "leaderboard:day";
 const MAX_ENTRIES = 10;
 const TZ = "America/Los_Angeles";
+
+// Standard keeps the original unprefixed keys so its existing scores carry over
+function keysFor(mode: GameMode) {
+  const base = mode === "standard" ? "leaderboard" : `${mode}:leaderboard`;
+  return { all: base, week: `${base}:week`, day: `${base}:day` };
+}
 
 function getDayStart(): Date {
   const zoned = toZonedTime(new Date(), TZ);
@@ -22,13 +25,13 @@ function getWeekStart(): Date {
   return fromZonedTime(startOfDay(monday), TZ);
 }
 
-export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
-  const scores = (await redis.get<LeaderboardEntry[]>(KEY)) ?? [];
+export async function getLeaderboard(mode: GameMode): Promise<LeaderboardEntry[]> {
+  const scores = (await redis.get<LeaderboardEntry[]>(keysFor(mode).all)) ?? [];
   return [...scores].sort((a, b) => b.score - a.score);
 }
 
-export async function getWeeklyLeaderboard(): Promise<LeaderboardEntry[]> {
-  const scores = (await redis.get<LeaderboardEntry[]>(WEEK_KEY)) ?? [];
+export async function getWeeklyLeaderboard(mode: GameMode): Promise<LeaderboardEntry[]> {
+  const scores = (await redis.get<LeaderboardEntry[]>(keysFor(mode).week)) ?? [];
   const weekStart = getWeekStart();
   return scores
     .filter((e) => new Date(e.date) >= weekStart)
@@ -36,8 +39,8 @@ export async function getWeeklyLeaderboard(): Promise<LeaderboardEntry[]> {
     .slice(0, MAX_ENTRIES);
 }
 
-export async function getDailyLeaderboard(): Promise<LeaderboardEntry[]> {
-  const scores = (await redis.get<LeaderboardEntry[]>(DAY_KEY)) ?? [];
+export async function getDailyLeaderboard(mode: GameMode): Promise<LeaderboardEntry[]> {
+  const scores = (await redis.get<LeaderboardEntry[]>(keysFor(mode).day)) ?? [];
   const dayStart = getDayStart();
   return scores
     .filter((e) => new Date(e.date) >= dayStart)
@@ -45,27 +48,26 @@ export async function getDailyLeaderboard(): Promise<LeaderboardEntry[]> {
     .slice(0, MAX_ENTRIES);
 }
 
-export async function isQualifying(score: number): Promise<boolean> {
+export async function isQualifying(mode: GameMode, score: number): Promise<boolean> {
   const [allTime, weekly, daily] = await Promise.all([
-    getLeaderboard(),
-    getWeeklyLeaderboard(),
-    getDailyLeaderboard(),
+    getLeaderboard(mode),
+    getWeeklyLeaderboard(mode),
+    getDailyLeaderboard(mode),
   ]);
   const qualifiesFor = (board: LeaderboardEntry[]) =>
     board.length < MAX_ENTRIES || score > board[board.length - 1].score;
   return qualifiesFor(allTime) || qualifiesFor(weekly) || qualifiesFor(daily);
 }
 
-export async function addEntry(
-  entry: LeaderboardEntry
-): Promise<{ allTime: LeaderboardEntry[]; weekly: LeaderboardEntry[]; daily: LeaderboardEntry[] }> {
+export async function addEntry(mode: GameMode, entry: LeaderboardEntry): Promise<Leaderboards> {
   const weekStart = getWeekStart();
   const dayStart = getDayStart();
+  const keys = keysFor(mode);
 
   const [storedAll, storedWeek, storedDay] = await Promise.all([
-    getLeaderboard(),
-    redis.get<LeaderboardEntry[]>(WEEK_KEY).then((s) => s ?? []),
-    redis.get<LeaderboardEntry[]>(DAY_KEY).then((s) => s ?? []),
+    getLeaderboard(mode),
+    redis.get<LeaderboardEntry[]>(keys.week).then((s) => s ?? []),
+    redis.get<LeaderboardEntry[]>(keys.day).then((s) => s ?? []),
   ]);
 
   // All-time: add, sort, keep top 10
@@ -84,9 +86,9 @@ export async function addEntry(
     .slice(0, MAX_ENTRIES);
 
   await Promise.all([
-    redis.set(KEY, allTime),
-    redis.set(WEEK_KEY, weekly),
-    redis.set(DAY_KEY, daily),
+    redis.set(keys.all, allTime),
+    redis.set(keys.week, weekly),
+    redis.set(keys.day, daily),
   ]);
 
   return { allTime, weekly, daily };

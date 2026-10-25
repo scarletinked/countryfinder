@@ -23,6 +23,7 @@ function reducer(state: GameState, action: GameAction): GameState {
     case "START_GAME":
       return {
         phase: "playing",
+        mode: action.mode,
         currentRound: 0,
         tier: "easy",
         streak: 0,
@@ -76,6 +77,7 @@ function reducer(state: GameState, action: GameAction): GameState {
 
 const initialState: GameState = {
   phase: "home",
+  mode: "standard",
   currentRound: 0,
   tier: "easy",
   streak: 0,

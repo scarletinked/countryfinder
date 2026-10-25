@@ -1,15 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { LeaderboardEntry } from "@/types";
-
-interface Boards {
-  allTime: LeaderboardEntry[];
-  weekly: LeaderboardEntry[];
-  daily: LeaderboardEntry[];
-}
+import type { GameMode, LeaderboardEntry, Leaderboards as Boards } from "@/types";
+import { MODE_LABELS } from "@/lib/modes";
 
 interface GameOverProps {
+  mode: GameMode;
   totalScore: number;
   onPlayAgain: () => void;
 }
@@ -20,7 +16,7 @@ function qualifiesFor(board: LeaderboardEntry[], score: number): boolean {
   return board.length < MAX_ENTRIES || score > board[board.length - 1].score;
 }
 
-export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
+export default function GameOver({ mode, totalScore, onPlayAgain }: GameOverProps) {
   const [boards, setBoards] = useState<Boards>({ allTime: [], weekly: [], daily: [] });
   const [qualifies, setQualifies] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -30,7 +26,7 @@ export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch("/api/leaderboard")
+    fetch(`/api/leaderboard?mode=${mode}`)
       .then((r) => r.json())
       .then((data: Boards) => {
         setBoards(data);
@@ -41,7 +37,7 @@ export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
         );
         setLoading(false);
       });
-  }, [totalScore]);
+  }, [mode, totalScore]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,7 +50,7 @@ export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
     const res = await fetch("/api/leaderboard", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ score: totalScore, name }),
+      body: JSON.stringify({ score: totalScore, name, mode }),
     });
 
     const data = await res.json();
@@ -81,6 +77,9 @@ export default function GameOver({ totalScore, onPlayAgain }: GameOverProps) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 px-4 py-8">
+      <p className="text-sm font-semibold uppercase tracking-widest text-slate-400 mb-1">
+        {MODE_LABELS[mode]}
+      </p>
       <h1 className="text-4xl font-bold text-white mb-2">Game Over</h1>
       <p className="text-2xl text-yellow-400 font-bold mb-8">
         Your score: {totalScore} / 1000

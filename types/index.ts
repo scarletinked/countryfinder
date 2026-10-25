@@ -8,6 +8,8 @@ export interface CountryFeature {
 
 export type Tier = "easy" | "medium" | "hard";
 
+export type GameMode = "standard" | "polly";
+
 export interface GameRound {
   roundNumber: number;
   targetCountry: CountryFeature;
@@ -22,6 +24,7 @@ export type GamePhase = "home" | "playing" | "round-result" | "game-over";
 
 export interface GameState {
   phase: GamePhase;
+  mode: GameMode;
   currentRound: number;
   tier: Tier;
   streak: number;
@@ -31,7 +34,7 @@ export interface GameState {
 }
 
 export type GameAction =
-  | { type: "START_GAME"; country: CountryFeature }
+  | { type: "START_GAME"; mode: GameMode; country: CountryFeature }
   | { type: "PLACE_MARKER"; lngLat: [number, number] }
   | {
       type: "SUBMIT_GUESS";
@@ -46,4 +49,10 @@ export interface LeaderboardEntry {
   name: string;
   score: number;
   date: string;
+}
+
+export interface Leaderboards {
+  allTime: LeaderboardEntry[];
+  weekly: LeaderboardEntry[];
+  daily: LeaderboardEntry[];
 }

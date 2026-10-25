@@ -8,7 +8,7 @@ const TIER_STYLES: Record<Tier, string> = {
 };
 
 interface GameHUDProps {
-  countryName: string;
+  prompt: string;
   currentRound: number;
   totalRounds: number;
   totalScore: number;
@@ -17,7 +17,7 @@ interface GameHUDProps {
 }
 
 export default function GameHUD({
-  countryName,
+  prompt,
   currentRound,
   totalRounds,
   totalScore,
@@ -48,8 +48,8 @@ export default function GameHUD({
           )}
         </span>
       </div>
-      <div className="flex-1 text-center text-base font-bold text-yellow-400 truncate px-2">
-        {countryName}
+      <div className="flex-1 text-center text-sm sm:text-base font-bold leading-tight text-yellow-400 px-2">
+        {prompt}
       </div>
       <div className="text-xs text-slate-400 whitespace-nowrap">
         <span className="text-slate-500">Score </span>

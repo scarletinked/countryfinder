@@ -3,17 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Space_Grotesk } from "next/font/google";
 import * as d3 from "d3";
-import type { CountryFeature, LeaderboardEntry } from "@/types";
+import type { CountryFeature, GameMode, Leaderboards } from "@/types";
+import { MODES, MODE_LABELS } from "@/lib/modes";
 
 const display = Space_Grotesk({ subsets: ["latin"], weight: ["500", "700"] });
 
-type Leaderboard = {
-  allTime: LeaderboardEntry[];
-  weekly: LeaderboardEntry[];
-  daily: LeaderboardEntry[];
-};
-
-type BoardKey = keyof Leaderboard;
+type BoardKey = keyof Leaderboards;
 
 const TABS: { key: BoardKey; label: string }[] = [
   { key: "daily", label: "Today" },
@@ -26,13 +21,15 @@ const MEDALS = ["#f5c84c", "#cbd5e1", "#d4925a"];
 interface HomeScreenProps {
   countries: CountryFeature[];
   loading: boolean;
-  leaderboard: Leaderboard | null;
-  onStart: () => void;
+  leaderboards: Record<GameMode, Leaderboards> | null;
+  onStart: (mode: GameMode) => void;
 }
 
-export default function HomeScreen({ countries, loading, leaderboard, onStart }: HomeScreenProps) {
+export default function HomeScreen({ countries, loading, leaderboards, onStart }: HomeScreenProps) {
   const [tab, setTab] = useState<BoardKey>("daily");
+  const [boardMode, setBoardMode] = useState<GameMode>("standard");
   const [featured, setFeatured] = useState<string | null>(null);
+  const leaderboard = leaderboards?.[boardMode] ?? null;
   const entries = leaderboard?.[tab] ?? [];
 
   return (
@@ -78,16 +75,29 @@ export default function HomeScreen({ countries, loading, leaderboard, onStart }:
               <Stat value="2" label="in a row to level up" />
             </div>
 
-            <div className="flex items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
-                onClick={onStart}
+                onClick={() => onStart("standard")}
                 disabled={loading}
                 className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 px-8 py-4 text-lg font-semibold text-slate-950 shadow-[0_10px_40px_-10px_rgba(45,212,191,0.6)] transition hover:brightness-110 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
               >
-                {loading ? "Loading map…" : "Start game"}
+                {loading ? "Loading map…" : "Play Standard"}
                 {!loading && (
                   <span className="transition-transform group-hover:translate-x-1">→</span>
                 )}
+              </button>
+              <button
+                onClick={() => onStart("polly")}
+                disabled={loading}
+                className="group flex flex-col items-start rounded-2xl border border-amber-300/30 bg-amber-300/5 px-5 py-2.5 text-left transition hover:border-amber-300/60 hover:bg-amber-300/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+              >
+                <span className="flex items-center gap-2 font-semibold text-amber-200">
+                  {MODE_LABELS.polly}
+                  <span className="rounded-full bg-amber-300/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                    Harder
+                  </span>
+                </span>
+                <span className="text-xs text-slate-400">Find the country from its capital</span>
               </button>
             </div>
           </div>
@@ -108,6 +118,23 @@ export default function HomeScreen({ countries, loading, leaderboard, onStart }:
         {/* Leaderboard */}
         <section className="mx-auto w-full max-w-xl">
           <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl sm:p-6">
+            <div className="mb-4 flex rounded-xl bg-white/5 p-1 text-sm">
+              {MODES.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setBoardMode(m)}
+                  className={`flex-1 rounded-lg px-3 py-1.5 font-medium transition ${
+                    boardMode === m
+                      ? m === "polly"
+                        ? "bg-amber-300/15 text-amber-200"
+                        : "bg-teal-400/15 text-teal-200"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {MODE_LABELS[m]}
+                </button>
+              ))}
+            </div>
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <h2 className={`${display.className} text-xl font-bold`}>Leaderboard</h2>
               <div className="flex rounded-full bg-white/5 p-1 text-xs sm:text-sm">
