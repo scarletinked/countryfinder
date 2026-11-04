@@ -5,7 +5,7 @@ export const MODES: GameMode[] = ["standard", "polly", "states", "statehouse"];
 export const MODE_LABELS: Record<GameMode, string> = {
   standard: "Standard",
   polly: "Polly Wants a Capital",
-  states: "United Squawks",
+  states: "United Squawks of America",
   statehouse: "Polly Wants a Statehouse",
 };
 
