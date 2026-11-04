@@ -52,7 +52,12 @@ export function pickCountryForTier(
 ): CountryFeature {
   const pool = countries.filter((c) => tierOf(c) === tier && !excludeIds.has(c.id));
   // Fall back to any unused country if a tier ever runs dry
-  const options = pool.length > 0 ? pool : countries.filter((c) => !excludeIds.has(c.id));
+  return pool.length > 0 ? pickAny(pool, new Set()) : pickAny(countries, excludeIds);
+}
+
+// Any unused place, ignoring tiers
+export function pickAny(places: CountryFeature[], excludeIds: Set<number>): CountryFeature {
+  const options = places.filter((c) => !excludeIds.has(c.id));
   return options[Math.floor(Math.random() * options.length)];
 }
 

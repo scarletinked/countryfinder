@@ -9,6 +9,7 @@ import React, {
   useImperativeHandle,
 } from "react";
 import {
+  geoAlbersUsa,
   geoNaturalEarth1,
   geoPath,
   zoom as d3zoom,
@@ -33,6 +34,8 @@ export interface WorldMapHandle {
 
 interface WorldMapProps {
   features: CountryFeature[];
+  // "us" draws the states on an Albers projection with Alaska and Hawaii inset
+  map?: "world" | "us";
   markerPosition: [number, number] | null;
   highlightId?: number | null;
   onMarkerPlace: (lngLat: [number, number]) => void;
@@ -40,7 +43,7 @@ interface WorldMapProps {
 }
 
 const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
-  { features, markerPosition, highlightId, onMarkerPlace, parrotDestLngLat },
+  { features, map = "world", markerPosition, highlightId, onMarkerPlace, parrotDestLngLat },
   ref
 ) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -57,8 +60,14 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
   });
 
   const projection = useMemo(
-    () => geoNaturalEarth1().scale(153).translate([480, 250]),
-    []
+    () =>
+      map === "us"
+        ? geoAlbersUsa().fitExtent(
+            [[20, 20], [940, 480]],
+            { type: "FeatureCollection", features: features.map((f) => f.feature) }
+          )
+        : geoNaturalEarth1().scale(153).translate([480, 250]),
+    [map, features]
   );
 
   const pathGen = useMemo(() => geoPath().projection(projection), [projection]);
@@ -112,7 +121,7 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
     if (!svg || !g) return;
 
     const zb = d3zoom<SVGSVGElement, unknown>()
-      .scaleExtent([1, 16])
+      .scaleExtent([1, 32])
       .translateExtent([[-160, -80], [1120, 580]])
       .clickDistance(4)
       .on("zoom", (event) => {
@@ -140,7 +149,8 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
       const [baseX, baseY] = t.invert([svgPt.x, svgPt.y]);
 
       const coords = projection.invert?.([baseX, baseY]);
-      if (coords && isFinite(coords[0]) && isFinite(coords[1])) {
+      // The US projection can't draw points far outside its panels, so skip those clicks
+      if (coords && isFinite(coords[0]) && isFinite(coords[1]) && projection(coords)) {
         onMarkerPlaceRef.current(coords as [number, number]);
       }
     }

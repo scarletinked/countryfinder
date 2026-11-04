@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { GameMode, GameRound, LeaderboardEntry, Leaderboards as Boards } from "@/types";
-import { MODE_LABELS } from "@/lib/modes";
+import { MODE_INFO, MODE_LABELS } from "@/lib/modes";
 import { display } from "@/lib/fonts";
 import LeaderboardCard from "./LeaderboardCard";
 
@@ -72,7 +72,6 @@ export default function GameOver({ mode, totalScore, rounds, onPlayAgain, onHome
   }
 
   const hits = rounds.filter((r) => r.isCorrect).length;
-  const isPolly = mode === "polly";
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#060a13] text-slate-100">
@@ -92,11 +91,7 @@ export default function GameOver({ mode, totalScore, rounds, onPlayAgain, onHome
             <span className={`${display.className} font-bold tracking-tight`}>Home</span>
           </button>
           <span
-            className={`rounded-full border px-3 py-1 text-xs font-medium ${
-              isPolly
-                ? "border-amber-300/30 bg-amber-300/10 text-amber-200"
-                : "border-teal-400/25 bg-teal-400/10 text-teal-300"
-            }`}
+            className={`rounded-full border px-3 py-1 text-xs font-medium ${MODE_INFO[mode].badge}`}
           >
             {MODE_LABELS[mode]}
           </span>

@@ -12,7 +12,8 @@ interface GameHUDProps {
   currentRound: number;
   totalRounds: number;
   totalScore: number;
-  tier: Tier;
+  // null for modes without difficulty tiers
+  tier: Tier | null;
   streak: number;
 }
 
@@ -31,7 +32,7 @@ export default function GameHUD({
           <span className="text-white font-bold">{currentRound}</span>
           <span className="text-slate-500">/{totalRounds}</span>
         </span>
-        <span
+        {tier && <span
           className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-semibold ${TIER_STYLES[tier]}`}
           title={tier === "hard" ? "Hardest level" : `${HITS_TO_ADVANCE} in a row to level up`}
         >
@@ -46,7 +47,7 @@ export default function GameHUD({
               ))}
             </span>
           )}
-        </span>
+        </span>}
       </div>
       <div className="flex-1 text-center text-sm sm:text-base font-bold leading-tight text-yellow-400 px-2">
         {prompt}

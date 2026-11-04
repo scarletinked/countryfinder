@@ -6,6 +6,7 @@ interface RoundResultProps {
   capital: string | null;
   clickedCountryName: string | null;
   levelUpTo: string | null;
+  noun: "country" | "state";
   onNext: () => void;
 }
 
@@ -17,6 +18,7 @@ export default function RoundResult({
   capital,
   clickedCountryName,
   levelUpTo,
+  noun,
   onNext,
 }: RoundResultProps) {
   return (
@@ -27,13 +29,13 @@ export default function RoundResult({
       >
         {isCorrect ? (
           <p className={`text-green-400 font-bold mb-3 ${capital ? "text-xl" : "text-2xl"}`}>
-            {capital ? `Yes, ${capital}'s country is ${countryName}!` : "Correct! ✓"}
+            {capital ? `Yes, ${capital}'s ${noun} is ${countryName}!` : "Correct! ✓"}
           </p>
         ) : (
           <>
             <p className="text-red-400 text-lg font-bold mb-1">
               {capital
-                ? `Nope! ${capital}'s country is ${countryName}. It's over here.`
+                ? `Nope! ${capital}'s ${noun} is ${countryName}. It's over here.`
                 : `No, ${countryName} is over here.`}
             </p>
             {clickedCountryName && (
@@ -53,7 +55,7 @@ export default function RoundResult({
           </p>
         )}
         <p className="text-blue-300 text-sm font-semibold">
-          Click here for the next country →
+          Click here for the next {noun} →
         </p>
       </button>
     </div>

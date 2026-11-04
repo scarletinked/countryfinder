@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import type { CountryFeature, GameMode, Leaderboards } from "@/types";
-import { MODES, MODE_LABELS } from "@/lib/modes";
+import { MODES, MODE_INFO, MODE_LABELS } from "@/lib/modes";
 import { display } from "@/lib/fonts";
 import { getLandmarkPoint } from "@/lib/geo-utils";
 import LeaderboardCard from "./LeaderboardCard";
@@ -16,9 +16,9 @@ interface HomeScreenProps {
 }
 
 export default function HomeScreen({ countries, loading, leaderboards, onStart }: HomeScreenProps) {
-  const [boardMode, setBoardMode] = useState<GameMode>("standard");
+  const [selected, setSelected] = useState<GameMode>("standard");
   const [featured, setFeatured] = useState<string | null>(null);
-  const leaderboard = leaderboards?.[boardMode] ?? null;
+  const leaderboard = leaderboards?.[selected] ?? null;
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#060a13] text-slate-100">
@@ -26,7 +26,7 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
       <div className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-teal-500/10 blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 right-0 h-[380px] w-[480px] rounded-full bg-amber-400/5 blur-3xl" />
 
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-12 sm:px-8 sm:py-8 lg:py-14">
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-10 sm:px-8 sm:py-8 lg:py-14">
         {/* Top bar */}
         <header className="flex items-center gap-3">
           <img src="/icon.svg" alt="" className="h-9 w-9" />
@@ -39,7 +39,7 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
         <section className="grid items-center gap-6 sm:gap-10 lg:grid-cols-[1.05fr_1fr]">
           <div className="order-2 flex flex-col gap-4 sm:gap-6 lg:order-1">
             <span className="w-fit rounded-full border border-teal-400/25 bg-teal-400/10 px-3 py-1 text-xs font-medium text-teal-300">
-              A geography game · 10 rounds
+              A geography game · 4 ways to play · 10 rounds
             </span>
             <h1
               className={`${display.className} text-4xl font-bold leading-[1.02] tracking-tight sm:text-6xl`}
@@ -53,49 +53,17 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
               you are.
             </h1>
             <p className="max-w-md text-base text-slate-400 sm:text-lg">
-              It&apos;s like a Homing Pigeon, except prettier. We name a country, you drop a
-              pin on the map.
+              It&apos;s like a Homing Pigeon, except prettier. We name a place, you drop a pin
+              on the map.
             </p>
 
             <div className="flex flex-wrap gap-2 text-sm">
               <Stat value="100" label="pts for a direct hit" />
               <Stat value="50" label="pts max if you're close" />
-              <Stat value="2" label="in a row to level up" />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                onClick={() => onStart("standard")}
-                disabled={loading}
-                className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 px-8 py-4 text-lg font-semibold text-slate-950 shadow-[0_10px_40px_-10px_rgba(45,212,191,0.6)] transition hover:brightness-110 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
-              >
-                {loading ? "Loading map…" : "Play Standard"}
-                {!loading && (
-                  <span className="transition-transform group-hover:translate-x-1">→</span>
-                )}
-              </button>
-              <button
-                onClick={() => onStart("polly")}
-                disabled={loading}
-                className="group flex items-center gap-4 rounded-2xl border border-amber-300/30 bg-amber-300/5 px-5 py-2.5 text-left transition hover:border-amber-300/60 hover:bg-amber-300/10 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
-              >
-                <span className="flex flex-col items-start">
-                  <span className="flex items-center gap-2 font-semibold text-amber-200">
-                    {MODE_LABELS.polly}
-                    <span className="rounded-full bg-amber-300/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                      Harder
-                    </span>
-                  </span>
-                  <span className="text-xs text-slate-400">Find the country from its capital</span>
-                </span>
-                {!loading && (
-                  <span className="text-lg text-amber-200 transition-transform group-hover:translate-x-1">→</span>
-                )}
-              </button>
             </div>
           </div>
 
-          <div className="relative order-1 mx-auto aspect-square w-full max-w-[220px] sm:max-w-[420px] lg:order-2 lg:max-w-[500px]">
+          <div className="relative order-1 mx-auto aspect-square w-full max-w-[220px] sm:max-w-[400px] lg:order-2 lg:max-w-[460px]">
             <Globe countries={countries} onFeature={setFeatured} />
             {featured && (
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/10 bg-slate-900/70 px-4 py-1.5 text-sm backdrop-blur-md">
@@ -108,33 +76,88 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
           </div>
         </section>
 
-        {/* Leaderboard */}
+        {/* Game picker */}
+        <section className="flex flex-col gap-5">
+          <h2 className={`${display.className} text-2xl font-bold tracking-tight`}>Pick a game</h2>
+          <div className="grid gap-5 md:grid-cols-2">
+            {MAP_GROUPS.map((group) => (
+              <div key={group.map} className="flex flex-col gap-3" role="radiogroup" aria-label={group.title}>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-semibold uppercase tracking-widest text-slate-300">
+                    {group.title}
+                  </span>
+                  <span className="text-xs text-slate-500">{group.note}</span>
+                </div>
+                {MODES.filter((m) => MODE_INFO[m].map === group.map).map((m) => (
+                  <ModeCard key={m} mode={m} selected={selected === m} onSelect={() => setSelected(m)} />
+                ))}
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => onStart(selected)}
+            disabled={loading}
+            className="group inline-flex w-full items-center justify-center gap-2 self-center rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 px-8 py-4 text-lg font-semibold text-slate-950 shadow-[0_10px_40px_-10px_rgba(45,212,191,0.6)] transition hover:brightness-110 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:min-w-80"
+          >
+            {loading ? "Loading maps…" : `Play ${MODE_LABELS[selected]}`}
+            {!loading && <span className="transition-transform group-hover:translate-x-1">→</span>}
+          </button>
+        </section>
+
+        {/* Leaderboard for the picked game */}
         <section className="mx-auto w-full max-w-xl">
           <LeaderboardCard
             leaderboard={leaderboard}
             header={
-              <div className="mb-4 flex rounded-xl bg-white/5 p-1 text-sm">
-                {MODES.map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setBoardMode(m)}
-                    className={`flex-1 rounded-lg px-3 py-1.5 font-medium transition ${
-                      boardMode === m
-                        ? m === "polly"
-                          ? "bg-amber-300/15 text-amber-200"
-                          : "bg-teal-400/15 text-teal-200"
-                        : "text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    {MODE_LABELS[m]}
-                  </button>
-                ))}
-              </div>
+              <span
+                className={`mb-3 inline-block rounded-full border px-3 py-1 text-xs font-medium ${MODE_INFO[selected].badge}`}
+              >
+                {MODE_LABELS[selected]}
+              </span>
             }
           />
         </section>
       </div>
     </div>
+  );
+}
+
+const MAP_GROUPS = [
+  { map: "world", title: "World", note: "Climb from easy to hard, 2 in a row levels up" },
+  { map: "us", title: "United States", note: "All 50 states, picked at random" },
+] as const;
+
+function ModeCard({ mode, selected, onSelect }: { mode: GameMode; selected: boolean; onSelect: () => void }) {
+  const info = MODE_INFO[mode];
+  return (
+    <button
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className={`flex items-center gap-4 rounded-2xl border p-4 text-left transition active:scale-[0.99] ${
+        selected ? info.selected : "border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.06]"
+      }`}
+    >
+      <span
+        className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 ${
+          selected ? "border-current" : "border-slate-600"
+        } ${info.accent}`}
+      >
+        {selected && <span className="h-2.5 w-2.5 rounded-full bg-current" />}
+      </span>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="flex flex-wrap items-center gap-2 font-semibold text-white">
+          {MODE_LABELS[mode]}
+          {info.capitals && (
+            <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-300">
+              Capitals
+            </span>
+          )}
+        </span>
+        <span className="text-sm text-slate-400">{info.blurb}</span>
+      </span>
+    </button>
   );
 }
 

@@ -1,5 +1,6 @@
 import type { Feature, Geometry } from "geojson";
 
+// A country, or a US state in the US modes
 export interface CountryFeature {
   id: number;
   name: string;
@@ -8,7 +9,7 @@ export interface CountryFeature {
 
 export type Tier = "easy" | "medium" | "hard";
 
-export type GameMode = "standard" | "polly";
+export type GameMode = "standard" | "polly" | "states" | "statehouse";
 
 export interface GameRound {
   roundNumber: number;

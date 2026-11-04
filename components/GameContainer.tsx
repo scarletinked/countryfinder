@@ -3,7 +3,8 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useGameState, ROUNDS_PER_GAME } from "@/hooks/useGameState";
 import { loadCountries } from "@/lib/countries";
-import { pickCountryForTier, HITS_TO_ADVANCE, TIER_LABELS } from "@/lib/difficulty";
+import { loadStates } from "@/lib/states";
+import { pickAny, pickCountryForTier, HITS_TO_ADVANCE, TIER_LABELS } from "@/lib/difficulty";
 import { getDistanceMilesToCountry, getLandmarkPoint } from "@/lib/geo-utils";
 import { calculateScore } from "@/lib/scoring";
 import WorldMap, { type WorldMapHandle } from "./WorldMap";
@@ -13,8 +14,9 @@ import RoundResult from "./RoundResult";
 import GameOver from "./GameOver";
 import HomeScreen from "./HomeScreen";
 import { CAPITALS } from "@/lib/capitals";
-import { MODES } from "@/lib/modes";
-import type { CountryFeature, GameMode, Leaderboards } from "@/types";
+import { STATE_CAPITALS } from "@/lib/stateCapitals";
+import { MODES, MODE_INFO } from "@/lib/modes";
+import type { CountryFeature, GameMode, Leaderboards, Tier } from "@/types";
 
 // How far outside the target's outline, in on-screen pixels, a guess still counts as a hit
 const TAP_TOLERANCE_PX = 6;
@@ -22,27 +24,47 @@ const TAP_TOLERANCE_PX = 6;
 export default function GameContainer() {
   const [state, dispatch] = useGameState();
   const [allCountries, setAllCountries] = useState<CountryFeature[]>([]);
+  const [allStates, setAllStates] = useState<CountryFeature[]>([]);
   const [loadingMap, setLoadingMap] = useState(true);
   const [homeLeaderboards, setHomeLeaderboards] = useState<Record<GameMode, Leaderboards> | null>(null);
   const [parrotDestLngLat, setParrotDestLngLat] = useState<[number, number] | null>(null);
   const [clickedCountryName, setClickedCountryName] = useState<string | null>(null);
   const mapRef = useRef<WorldMapHandle>(null);
 
-  // Load country geodata once
+  // Load country and state geodata once
   useEffect(() => {
-    loadCountries().then((c) => {
+    Promise.all([loadCountries(), loadStates()]).then(([c, s]) => {
       setAllCountries(c);
+      setAllStates(s);
       setLoadingMap(false);
     });
   }, []);
 
-  // Fetch both modes' leaderboards whenever the home screen is shown
+  // Fetch every mode's leaderboards whenever the home screen is shown
   useEffect(() => {
     if (state.phase !== "home") return;
     Promise.all(
       MODES.map((m) => fetch(`/api/leaderboard?mode=${m}`).then((r) => r.json() as Promise<Leaderboards>))
-    ).then(([standard, polly]) => setHomeLeaderboards({ standard, polly }));
+    ).then((boards) =>
+      setHomeLeaderboards(Object.fromEntries(MODES.map((m, i) => [m, boards[i]])) as Record<GameMode, Leaderboards>)
+    );
   }, [state.phase]);
+
+  const mode = MODE_INFO[state.mode];
+  // Everything drawn on the map, and the places a round can ask about (DC is drawn but never asked)
+  const mapFeatures = mode.map === "us" ? allStates : allCountries;
+  const targetsFor = useCallback(
+    (m: GameMode) =>
+      MODE_INFO[m].map === "us" ? allStates.filter((s) => STATE_CAPITALS[s.name]) : allCountries,
+    [allCountries, allStates]
+  );
+  const pickTarget = useCallback(
+    (m: GameMode, tier: Tier, used: Set<number>) =>
+      MODE_INFO[m].tiers
+        ? pickCountryForTier(targetsFor(m), tier, used)
+        : pickAny(targetsFor(m), used),
+    [targetsFor]
+  );
 
   // Clear parrot and clicked country when leaving round-result
   useEffect(() => {
@@ -53,10 +75,10 @@ export default function GameContainer() {
   }, [state.phase]);
 
   const startGame = useCallback(
-    (mode: GameMode) => {
-      dispatch({ type: "START_GAME", mode, country: pickCountryForTier(allCountries, "easy", new Set()) });
+    (m: GameMode) => {
+      dispatch({ type: "START_GAME", mode: m, country: pickTarget(m, "easy", new Set()) });
     },
-    [allCountries, dispatch]
+    [pickTarget, dispatch]
   );
 
   const handleMarkerPlace = useCallback(
@@ -72,7 +94,7 @@ export default function GameContainer() {
     const target = state.rounds[state.currentRound].targetCountry;
     // Judge only by the shapes as drawn, so the result always matches what the player sees
     const drawnIds = mapRef.current?.countryIdsAt(state.markerPosition) ?? [];
-    const hit = allCountries.find((c) => c.id === drawnIds.find((id) => id !== target.id)) ?? null;
+    const hit = mapFeatures.find((c) => c.id === drawnIds.find((id) => id !== target.id)) ?? null;
     // A tap on sea just outside the target still counts; a tap inside a different country never does
     const isCorrect =
       drawnIds.includes(target.id) ||
@@ -88,14 +110,14 @@ export default function GameContainer() {
     }
     setParrotDestLngLat(getLandmarkPoint(target.feature));
     dispatch({ type: "SUBMIT_GUESS", isCorrect, distanceMiles, score });
-  }, [state, dispatch, allCountries]);
+  }, [state, dispatch, mapFeatures]);
 
   const handleNextRound = useCallback(() => {
     const used = new Set(state.rounds.map((r) => r.targetCountry.id));
-    const country = pickCountryForTier(allCountries, state.tier, used);
+    const country = pickTarget(state.mode, state.tier, used);
     mapRef.current?.zoomReset();
     setTimeout(() => dispatch({ type: "NEXT_ROUND", country }), 600);
-  }, [state.rounds, state.tier, allCountries, dispatch]);
+  }, [state.rounds, state.mode, state.tier, pickTarget, dispatch]);
 
 
   const handleReturnToMenu = useCallback(() => {
@@ -132,23 +154,28 @@ export default function GameContainer() {
   // ── Playing / Round Result ────────────────────────────────
   const currentRound = state.rounds[state.currentRound];
   const isResult = state.phase === "round-result";
-  const capital = state.mode === "polly" ? CAPITALS[currentRound.targetCountry.name] : null;
+  const targetName = currentRound.targetCountry.name;
+  const capital = mode.capitals
+    ? (mode.map === "us" ? STATE_CAPITALS : CAPITALS)[targetName]
+    : null;
+  const leveledUp = mode.tiers && currentRound.tier !== state.tier;
 
   return (
     <div className="flex flex-col h-dvh bg-slate-900">
       <GameHUD
-        prompt={capital ? `Find ${capital}'s country` : currentRound.targetCountry.name}
+        prompt={capital ? `Find ${capital}'s ${mode.noun}` : targetName}
         currentRound={state.currentRound + 1}
         totalRounds={ROUNDS_PER_GAME}
         totalScore={state.totalScore}
-        tier={currentRound.tier}
-        streak={currentRound.tier !== state.tier ? HITS_TO_ADVANCE : state.streak}
+        tier={mode.tiers ? currentRound.tier : null}
+        streak={leveledUp ? HITS_TO_ADVANCE : state.streak}
       />
 
       <div className="relative flex-1 overflow-hidden">
         <WorldMap
           ref={mapRef}
-          features={allCountries}
+          features={mapFeatures}
+          map={mode.map}
           markerPosition={state.markerPosition}
           highlightId={isResult ? currentRound.targetCountry.id : null}
           onMarkerPlace={handleMarkerPlace}
@@ -165,10 +192,11 @@ export default function GameContainer() {
             isCorrect={currentRound.isCorrect ?? false}
             score={currentRound.score}
             distanceMiles={currentRound.distanceMiles ?? 0}
-            countryName={currentRound.targetCountry.name}
+            countryName={targetName}
             capital={capital}
             clickedCountryName={clickedCountryName}
-            levelUpTo={currentRound.tier !== state.tier ? TIER_LABELS[state.tier] : null}
+            levelUpTo={leveledUp ? TIER_LABELS[state.tier] : null}
+            noun={mode.noun}
             onNext={handleNextRound}
           />
         )}
