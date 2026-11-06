@@ -112,7 +112,15 @@ export default function GameContainer() {
     dispatch({ type: "SUBMIT_GUESS", isCorrect, distanceMiles, score });
   }, [state, dispatch, mapFeatures]);
 
+  // Set while the delayed advance is pending, so extra clicks on "Next" do nothing
+  const advancingRef = useRef(false);
+  useEffect(() => {
+    if (state.phase === "round-result") advancingRef.current = false;
+  }, [state.phase]);
+
   const handleNextRound = useCallback(() => {
+    if (advancingRef.current) return;
+    advancingRef.current = true;
     const used = new Set(state.rounds.map((r) => r.targetCountry.id));
     const country = pickTarget(state.mode, state.tier, used);
     mapRef.current?.zoomReset();

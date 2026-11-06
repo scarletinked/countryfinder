@@ -54,6 +54,8 @@ function reducer(state: GameState, action: GameAction): GameState {
     }
 
     case "NEXT_ROUND": {
+      // Ignore repeats (e.g. a double-click on "Next") once the round has already advanced
+      if (state.phase !== "round-result") return state;
       const next = state.currentRound + 1;
       if (next >= ROUNDS_PER_GAME) {
         return { ...state, phase: "game-over" };
