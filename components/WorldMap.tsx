@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import {
   geoAlbersUsa,
+  geoGraticule10,
   geoNaturalEarth1,
   geoPath,
   zoom as d3zoom,
@@ -71,6 +72,15 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
   );
 
   const pathGen = useMemo(() => geoPath().projection(projection), [projection]);
+
+  // Globe outline and lat/long grid for the world map; the US map's inset panels can't show them
+  const backdrop = useMemo(
+    () =>
+      map === "world"
+        ? { sphere: pathGen({ type: "Sphere" }) ?? "", grid: pathGen(geoGraticule10()) ?? "" }
+        : null,
+    [map, pathGen]
+  );
 
   useImperativeHandle(ref, () => ({
     zoomIn() {
@@ -263,17 +273,24 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
       ref={svgRef}
       viewBox="0 0 960 500"
       className="w-full h-full cursor-crosshair select-none"
-      style={{ background: "#1a3a5c" }}
+      // Old-atlas palette: parchment margins, pale sea, sand land, red ink for the answer
+      style={{ background: map === "world" ? "#efe3c6" : "#dfe9e4" }}
     >
       <g ref={gRef}>
+        {backdrop && (
+          <>
+            <path d={backdrop.sphere} fill="#dfe9e4" stroke="#9c8a63" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+            <path d={backdrop.grid} fill="none" stroke="#b8cbc2" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
+          </>
+        )}
         {features.map((f) => (
           <path
             key={f.id}
             data-id={f.id}
             d={pathGen(f.feature) ?? ""}
-            fill={highlightId === f.id ? "#22c55e" : "#475569"}
-            stroke={highlightId === f.id ? "#86efac" : "#64748b"}
-            strokeWidth={0.75}
+            fill={highlightId === f.id ? "#e3a594" : "#e9dcbc"}
+            stroke={highlightId === f.id ? "#b23a2e" : "#9c8a63"}
+            strokeWidth={highlightId === f.id ? 1.5 : 0.75}
             // Keep borders a hairline at every zoom so small countries aren't mostly border
             vectorEffect="non-scaling-stroke"
           />
@@ -282,15 +299,15 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
 
       {screenMarkerPx && (
         <g transform={`translate(${screenMarkerPx[0]}, ${screenMarkerPx[1]})`} style={{ pointerEvents: "none" }}>
-          <circle r={7} fill="#ef4444" stroke="white" strokeWidth={2}/>
-          <circle r={2} fill="white"/>
+          <circle r={7} fill="#2e5d7a" stroke="#f6efdf" strokeWidth={2}/>
+          <circle r={2} fill="#f6efdf"/>
         </g>
       )}
 
       {/* Parrot: hidden by default, shown + animated after guess */}
       <g ref={parrotGRef} style={{ display: "none", pointerEvents: "none" }}>
-        {/* white halo for visibility against any background */}
-        <circle r={14} fill="white" opacity={0.35}/>
+        {/* paper halo for visibility against any background */}
+        <circle r={14} fill="#f6efdf" opacity={0.7} stroke="#9c8a63" strokeWidth={0.75}/>
         {/* parrot icon centered at origin, scaled from logo coords */}
         <g transform="scale(0.5) translate(-59, -44)">
           <path d="M 54,56 Q 40,68 37,82" stroke="#00897b" strokeWidth="3.2" fill="none" strokeLinecap="round"/>

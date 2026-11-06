@@ -1,7 +1,21 @@
 @import "tailwindcss";
 
+/* Old-atlas palette, shared by every screen */
+@theme {
+  --color-paper: #f6efdf;
+  --color-paper-deep: #efe3c6;
+  --color-rule: #d8c9a8;
+  --color-ink: #3a2f22;
+  --color-ink-strong: #2b2218;
+  --color-ink-muted: #7a6a4f;
+  --color-atlas-red: #b23a2e;
+  --color-atlas-blue: #2e5d7a;
+  --color-atlas-green: #3f6b2f;
+  --color-atlas-ochre: #9a6b14;
+}
+
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -13,9 +27,21 @@
   to { opacity: 1; transform: none; }
 }
 
+@keyframes drawPath {
+  from { stroke-dashoffset: 400; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes pulseRing {
+  from { r: 5; opacity: 0.8; }
+  to { r: 22; opacity: 0; }
+}
+
 html,
 body {
   height: 100%;
   margin: 0;
   padding: 0;
+  background: #f6efdf;
+  color: #3a2f22;
 }

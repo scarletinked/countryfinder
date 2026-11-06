@@ -169,7 +169,7 @@ export default function GameContainer() {
   const leveledUp = mode.tiers && currentRound.tier !== state.tier;
 
   return (
-    <div className="flex flex-col h-dvh bg-slate-900">
+    <div className="flex flex-col h-dvh bg-paper">
       <GameHUD
         prompt={capital ? `Find ${capital}'s ${mode.noun}` : targetName}
         currentRound={state.currentRound + 1}
@@ -211,17 +211,17 @@ export default function GameContainer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="flex items-center gap-2 px-3 py-3 bg-slate-800 border-t border-slate-700 flex-shrink-0">
+      <div className="flex items-center gap-2 px-3 py-3 bg-paper border-t border-rule flex-shrink-0">
         <button
           onClick={handleGuess}
           disabled={!state.markerPosition || isResult}
-          className="flex-1 bg-green-600 hover:bg-green-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold py-3 rounded-lg text-base sm:text-lg transition-colors"
+          className="flex-1 bg-atlas-red hover:brightness-110 disabled:bg-paper-deep disabled:text-ink-muted disabled:hover:brightness-100 text-paper font-medium py-3 text-base sm:text-lg transition"
         >
           {state.markerPosition ? "Guess!" : "Tap the map to place your guess"}
         </button>
         <button
           onClick={handleReturnToMenu}
-          className="text-slate-400 hover:text-white text-sm transition-colors px-2 py-1 whitespace-nowrap flex-shrink-0"
+          className="text-ink-muted hover:text-ink-strong text-sm transition-colors px-2 py-1 whitespace-nowrap flex-shrink-0"
         >
           Menu
         </button>

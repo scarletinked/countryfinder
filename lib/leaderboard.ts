@@ -8,7 +8,7 @@ const redis = Redis.fromEnv();
 const MAX_ENTRIES = 10;
 const TZ = "America/Los_Angeles";
 
-// Standard keeps the original unprefixed keys so its existing scores carry over
+// The "standard" mode (International Flight) keeps the original unprefixed keys so its existing scores carry over
 function keysFor(mode: GameMode) {
   const base = mode === "standard" ? "leaderboard" : `${mode}:leaderboard`;
   return { all: base, week: `${base}:week`, day: `${base}:day` };

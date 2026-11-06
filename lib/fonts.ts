@@ -1,3 +1,4 @@
-import { Space_Grotesk } from "next/font/google";
+import { Fraunces } from "next/font/google";
 
-export const display = Space_Grotesk({ subsets: ["latin"], weight: ["500", "700"] });
+// Old-atlas serif for titles, numerals and scores
+export const display = Fraunces({ subsets: ["latin"] });

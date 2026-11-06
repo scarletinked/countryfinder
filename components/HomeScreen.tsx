@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as d3 from "d3";
 import type { CountryFeature, GameMode, Leaderboards } from "@/types";
 import { MODES, MODE_INFO, MODE_LABELS } from "@/lib/modes";
 import { display } from "@/lib/fonts";
 import { getLandmarkPoint } from "@/lib/geo-utils";
+import { readBest } from "@/lib/personalBest";
 import LeaderboardCard from "./LeaderboardCard";
 
 interface HomeScreenProps {
@@ -17,105 +18,51 @@ interface HomeScreenProps {
 
 export default function HomeScreen({ countries, loading, leaderboards, onStart }: HomeScreenProps) {
   const [selected, setSelected] = useState<GameMode>("standard");
-  const [featured, setFeatured] = useState<string | null>(null);
-  const leaderboard = leaderboards?.[selected] ?? null;
+  const [bests, setBests] = useState<Partial<Record<GameMode, number | null>>>({});
+
+  // Read after mount so the server render and first client render match
+  useEffect(() => {
+    setBests(Object.fromEntries(MODES.map((m) => [m, readBest(m)])));
+  }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#060a13] text-slate-100">
-      {/* Ambient glows */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-teal-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-[380px] w-[480px] rounded-full bg-amber-400/5 blur-3xl" />
+    <div className="min-h-screen bg-paper text-ink">
+      <HeroMap countries={countries} />
 
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-10 sm:px-8 sm:py-8 lg:py-14">
-        {/* Top bar */}
-        <header className="flex items-center gap-3">
-          <img src="/icon.svg" alt="" className="h-9 w-9" />
-          <span className={`${display.className} text-lg font-bold tracking-tight`}>
-            Homing Parrot
-          </span>
-        </header>
-
-        {/* Hero */}
-        <section className="grid items-center gap-6 sm:gap-10 lg:grid-cols-[1.05fr_1fr]">
-          <div className="order-2 flex flex-col gap-4 sm:gap-6 lg:order-1">
-            <span className="w-fit rounded-full border border-teal-400/25 bg-teal-400/10 px-3 py-1 text-xs font-medium text-teal-300">
-              A geography game · 4 ways to play · 10 rounds
-            </span>
-            <h1
-              className={`${display.className} text-4xl font-bold leading-[1.02] tracking-tight sm:text-6xl`}
-            >
-              Know where
-              <br />
-              <span className="bg-gradient-to-r from-teal-300 via-emerald-300 to-amber-300 bg-clip-text text-transparent">
-                in the world
-              </span>
-              <br />
-              you are.
-            </h1>
-            <p className="max-w-md text-base text-slate-400 sm:text-lg">
-              It&apos;s like a Homing Pigeon, except prettier. We name a place, you drop a pin
-              on the map.
-            </p>
-
-            <div className="flex flex-wrap gap-2 text-sm">
-              <Stat value="100" label="pts for a direct hit" />
-              <Stat value="50" label="pts max if you're close" />
-            </div>
-          </div>
-
-          <div className="relative order-1 mx-auto aspect-square w-full max-w-[220px] sm:max-w-[400px] lg:order-2 lg:max-w-[460px]">
-            <Globe countries={countries} onFeature={setFeatured} />
-            {featured && (
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/10 bg-slate-900/70 px-4 py-1.5 text-sm backdrop-blur-md">
-                <span className="text-slate-400">Find </span>
-                <span key={featured} className="font-semibold text-amber-300 animate-[fadeIn_.4s_ease]">
-                  {featured}
-                </span>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Game picker */}
-        <section className="flex flex-col gap-5">
-          <h2 className={`${display.className} text-2xl font-bold tracking-tight`}>Pick a game</h2>
-          <div className="grid gap-5 md:grid-cols-2">
-            {MAP_GROUPS.map((group) => (
-              <div key={group.map} className="flex flex-col gap-3" role="radiogroup" aria-label={group.title}>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-semibold uppercase tracking-widest text-slate-300">
-                    {group.title}
-                  </span>
-                  <span className="text-xs text-slate-500">{group.note}</span>
-                </div>
-                {MODES.filter((m) => MODE_INFO[m].map === group.map).map((m) => (
-                  <ModeCard key={m} mode={m} selected={selected === m} onSelect={() => setSelected(m)} />
-                ))}
-              </div>
+      <div className="mx-auto grid max-w-5xl gap-8 px-4 py-6 sm:px-8 sm:py-8 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] md:gap-10">
+        {/* Contents: the four games */}
+        <section>
+          <h2 className={`${display.className} mb-2 text-xl font-medium text-ink-strong`}>Contents</h2>
+          <div role="radiogroup" aria-label="Pick a game" className="border-b border-rule">
+            {MODES.map((m) => (
+              <Chapter
+                key={m}
+                mode={m}
+                best={bests[m] ?? null}
+                selected={selected === m}
+                onSelect={() => setSelected(m)}
+              />
             ))}
           </div>
 
-          <button
-            onClick={() => onStart(selected)}
-            disabled={loading}
-            className="group inline-flex w-full items-center justify-center gap-2 self-center rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 px-8 py-4 text-lg font-semibold text-slate-950 shadow-[0_10px_40px_-10px_rgba(45,212,191,0.6)] transition hover:brightness-110 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:min-w-80"
-          >
-            {loading ? "Loading maps…" : `Play ${MODE_LABELS[selected]}`}
-            {!loading && <span className="transition-transform group-hover:translate-x-1">→</span>}
-          </button>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <button
+              onClick={() => onStart(selected)}
+              disabled={loading}
+              className="group inline-flex items-center justify-center gap-2 bg-atlas-red px-6 py-3 text-base font-medium text-paper transition hover:brightness-110 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+            >
+              {loading ? "Unrolling the maps…" : `Begin chapter ${MODE_INFO[selected].numeral}`}
+              {!loading && <span className="transition-transform group-hover:translate-x-1">→</span>}
+            </button>
+            <span className="text-sm text-ink-muted">100 pts a direct hit, up to 50 if close</span>
+          </div>
         </section>
 
         {/* Leaderboard for the picked game */}
-        <section className="mx-auto w-full max-w-xl">
+        <section className="border-rule md:border-l md:pl-8">
           <LeaderboardCard
-            leaderboard={leaderboard}
-            header={
-              <span
-                className={`mb-3 inline-block rounded-full border px-3 py-1 text-xs font-medium ${MODE_INFO[selected].badge}`}
-              >
-                {MODE_LABELS[selected]}
-              </span>
-            }
+            leaderboard={leaderboards?.[selected] ?? null}
+            subtitle={MODE_LABELS[selected]}
           />
         </section>
       </div>
@@ -123,204 +70,136 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
   );
 }
 
-const MAP_GROUPS = [
-  { map: "world", title: "World", note: "Climb from easy to hard, 2 in a row levels up" },
-  { map: "us", title: "United States", note: "All 50 states, picked at random" },
-] as const;
-
-function ModeCard({ mode, selected, onSelect }: { mode: GameMode; selected: boolean; onSelect: () => void }) {
+function Chapter({
+  mode,
+  best,
+  selected,
+  onSelect,
+}: {
+  mode: GameMode;
+  best: number | null;
+  selected: boolean;
+  onSelect: () => void;
+}) {
   const info = MODE_INFO[mode];
   return (
     <button
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className={`flex items-center gap-4 rounded-2xl border p-4 text-left transition active:scale-[0.99] ${
-        selected ? info.selected : "border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.06]"
+      className={`grid w-full grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 border-t border-rule px-2 py-3 text-left transition ${
+        selected ? "bg-paper-deep" : "hover:bg-paper-deep/50"
       }`}
     >
-      <span
-        className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 ${
-          selected ? "border-current" : "border-slate-600"
-        } ${info.accent}`}
-      >
-        {selected && <span className="h-2.5 w-2.5 rounded-full bg-current" />}
+      <span className={`${display.className} text-xl`} style={{ color: info.ink }}>
+        {info.numeral}
       </span>
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="flex flex-wrap items-center gap-2 font-semibold text-white">
+      <span className="min-w-0">
+        <span className={`block font-medium ${selected ? "text-ink-strong" : "text-ink"}`}>
           {MODE_LABELS[mode]}
-          {info.capitals && (
-            <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-300">
-              Capitals
-            </span>
-          )}
         </span>
-        <span className="text-sm text-slate-400">{info.blurb}</span>
+        <span className="block text-sm text-ink-muted">{info.blurb}</span>
+      </span>
+      <span className="text-right text-xs leading-tight text-ink-muted">
+        Your best
+        <br />
+        <span className={`${display.className} text-base text-ink`}>{best ?? "—"}</span>
       </span>
     </button>
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="flex items-baseline gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-      <span className={`${display.className} font-bold text-white`}>{value}</span>
-      <span className="text-slate-400">{label}</span>
-    </div>
-  );
-}
+// Old-paper world map strip that flies a dotted path to a different country every few seconds
+function HeroMap({ countries }: { countries: CountryFeature[] }) {
+  const { projection, path, graticule, candidates } = useMemo(() => {
+    const projection = d3.geoNaturalEarth1().scale(153).translate([480, 250]);
+    const path = d3.geoPath(projection);
+    // Big enough to see, and inside the band of latitudes the strip shows
+    const candidates = countries.filter((c) => {
+      const [, lat] = getLandmarkPoint(c.feature);
+      return d3.geoArea(c.feature) > 0.004 && lat > -35 && lat < 48;
+    });
+    return { projection, path, graticule: path(d3.geoGraticule10()) ?? "", candidates };
+  }, [countries]);
 
-// Slowly spinning globe that turns to face a different country every few seconds
-function Globe({
-  countries,
-  onFeature,
-}: {
-  countries: CountryFeature[];
-  onFeature: (name: string | null) => void;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [stops, setStops] = useState<{ from: CountryFeature | null; to: CountryFeature | null }>({
+    from: null,
+    to: null,
+  });
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || countries.length === 0) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (candidates.length === 0) return;
+    const pick = () => candidates[Math.floor(Math.random() * candidates.length)];
+    setStops({ from: null, to: pick() });
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setStops((s) => ({ from: s.to, to: pick() })), 3800);
+    return () => clearInterval(id);
+  }, [candidates]);
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const candidates = countries.filter((c) => d3.geoArea(c.feature) > 0.004);
-    const projection = d3.geoOrthographic().clipAngle(90).precision(0.5);
-    const path = d3.geoPath(projection, ctx);
-    const graticule = d3.geoGraticule10();
-    const sphere = { type: "Sphere" } as d3.GeoPermissibleObjects;
-
-    let size = 0;
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      size = canvas.clientWidth;
-      canvas.width = size * dpr;
-      canvas.height = size * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      projection.scale(size / 2 - 8).translate([size / 2, size / 2]);
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(canvas);
-
-    let rotation: [number, number] = [0, -15];
-    let target: CountryFeature | null = null;
-    let targetPoint: [number, number] = [0, 0];
-    let from = rotation;
-    let to = rotation;
-    let tweenStart = 0;
-    const TWEEN_MS = 1600;
-
-    const pickNext = (now: number) => {
-      target = candidates[Math.floor(Math.random() * candidates.length)];
-      targetPoint = getLandmarkPoint(target.feature);
-      const [lng, lat] = targetPoint;
-      from = rotation;
-      // Take the short way round
-      let dLng = -lng - from[0];
-      dLng = ((dLng + 540) % 360) - 180;
-      to = [from[0] + dLng, Math.max(-35, Math.min(35, -lat))];
-      tweenStart = now;
-      onFeature(target.name);
-    };
-
-    const draw = (now: number) => {
-      const t = Math.min(1, (now - tweenStart) / TWEEN_MS);
-      const e = d3.easeCubicInOut(t);
-      rotation = [from[0] + (to[0] - from[0]) * e, from[1] + (to[1] - from[1]) * e];
-      projection.rotate(rotation);
-
-      ctx.clearRect(0, 0, size, size);
-      const r = projection.scale();
-      const cx = size / 2;
-
-      // Ocean
-      const ocean = ctx.createRadialGradient(cx - r * 0.35, cx - r * 0.4, r * 0.1, cx, cx, r);
-      ocean.addColorStop(0, "#14304a");
-      ocean.addColorStop(1, "#070f1c");
-      ctx.beginPath();
-      path(sphere);
-      ctx.fillStyle = ocean;
-      ctx.fill();
-
-      // Grid
-      ctx.beginPath();
-      path(graticule);
-      ctx.strokeStyle = "rgba(148,163,184,0.08)";
-      ctx.lineWidth = 0.6;
-      ctx.stroke();
-
-      // Land
-      ctx.beginPath();
-      for (const c of countries) path(c.feature);
-      ctx.fillStyle = "rgba(45,212,191,0.16)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(94,234,212,0.35)";
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-
-      // Featured country + pin
-      if (target) {
-        ctx.beginPath();
-        path(target.feature);
-        ctx.fillStyle = `rgba(252,211,77,${0.25 + 0.55 * e})`;
-        ctx.fill();
-        ctx.strokeStyle = "rgba(252,211,77,0.9)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        const p = projection(targetPoint);
-        if (p && t === 1) {
-          const pulse = ((now - tweenStart - TWEEN_MS) % 1600) / 1600;
-          ctx.beginPath();
-          ctx.arc(p[0], p[1], 4 + pulse * 18, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(252,211,77,${0.7 * (1 - pulse)})`;
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(p[0], p[1], 4, 0, Math.PI * 2);
-          ctx.fillStyle = "#fde68a";
-          ctx.fill();
-        }
-      }
-
-      // Rim light
-      ctx.beginPath();
-      path(sphere);
-      ctx.strokeStyle = "rgba(94,234,212,0.35)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    };
-
-    let raf = 0;
-    const start = performance.now();
-    pickNext(start);
-    if (reduceMotion) {
-      tweenStart = start - TWEEN_MS;
-      draw(start);
-      return () => ro.disconnect();
-    }
-
-    const loop = (now: number) => {
-      if (now - tweenStart > TWEEN_MS + 2600) pickNext(now);
-      draw(now);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-    };
-  }, [countries, onFeature]);
+  const pinAt = (c: CountryFeature | null) => (c ? projection(getLandmarkPoint(c.feature)) : null);
+  const a = pinAt(stops.from);
+  const b = pinAt(stops.to);
+  const flight =
+    a && b
+      ? `M${a[0]},${a[1]} Q${(a[0] + b[0]) / 2},${Math.min(a[1], b[1]) - 60} ${b[0]},${b[1]}`
+      : null;
 
   return (
-    <>
-      <div className="absolute inset-[6%] rounded-full bg-teal-400/10 blur-3xl" />
-      <canvas ref={canvasRef} className="relative h-full w-full" aria-hidden="true" />
-    </>
+    <div className="relative h-[210px] overflow-hidden border-b border-rule bg-[#dfe9e4] sm:h-[300px]">
+      <svg
+        viewBox="0 0 960 500"
+        preserveAspectRatio="xMidYMid slice"
+        className="absolute inset-0 h-full w-full"
+        aria-hidden="true"
+      >
+        <path d={graticule} fill="none" stroke="#b8cbc2" strokeWidth={0.6} />
+        {countries.map((c) => (
+          <path
+            key={c.id}
+            d={path(c.feature) ?? ""}
+            fill={c.id === stops.to?.id ? "#e3a594" : "#e9dcbc"}
+            stroke={c.id === stops.to?.id ? "#b23a2e" : "#9c8a63"}
+            strokeWidth={0.6}
+            className="transition-[fill] duration-700"
+          />
+        ))}
+        {flight && (
+          <path
+            key={flight}
+            d={flight}
+            fill="none"
+            stroke="#b23a2e"
+            strokeWidth={1.6}
+            strokeDasharray="5 5"
+            className="animate-[fadeIn_.6s_ease]"
+          />
+        )}
+        {b && (
+          <g key={stops.to?.id} transform={`translate(${b[0]},${b[1]})`}>
+            <circle r={5} fill="none" stroke="#b23a2e" strokeWidth={1.4} className="animate-[pulseRing_1.8s_ease-out_infinite]" />
+            <circle r={5} fill="#b23a2e" stroke="#f6efdf" strokeWidth={1.5} />
+          </g>
+        )}
+      </svg>
+
+      {stops.to && (
+        <div className="absolute right-3 top-3 border border-[#9c8a63] bg-paper px-3 py-1 text-sm sm:right-5 sm:top-4">
+          <span className="text-ink-muted">Find </span>
+          <span key={stops.to.id} className={`${display.className} text-atlas-red animate-[fadeIn_.4s_ease]`}>
+            {stops.to.name}
+          </span>
+        </div>
+      )}
+
+      <div className="absolute bottom-3 left-3 border border-[#9c8a63] bg-paper/95 px-4 py-3 sm:bottom-5 sm:left-6 sm:px-5">
+        <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-ink-muted">
+          <img src="/icon.svg" alt="" className="h-5 w-5" />
+          A geography game in ten rounds
+        </div>
+        <h1 className={`${display.className} text-3xl leading-none text-ink-strong sm:text-5xl`}>
+          Homing Parrot
+        </h1>
+      </div>
+    </div>
   );
 }

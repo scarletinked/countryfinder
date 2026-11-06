@@ -1,3 +1,5 @@
+import { display } from "@/lib/fonts";
+
 interface RoundResultProps {
   isCorrect: boolean;
   score: number;
@@ -25,38 +27,34 @@ export default function RoundResult({
     <div className="absolute inset-x-0 top-4 flex justify-center pointer-events-none z-20">
       <button
         onClick={onNext}
-        className="bg-slate-900/95 border border-slate-600 rounded-xl p-6 text-center min-w-56 max-w-sm mx-4 shadow-2xl pointer-events-auto cursor-pointer hover:border-slate-400 transition-colors"
+        className="mx-4 min-w-56 max-w-sm cursor-pointer border border-[#9c8a63] bg-paper/95 p-6 text-center text-ink shadow-[0_8px_30px_-8px_rgba(58,47,34,0.45)] pointer-events-auto transition-colors hover:bg-paper"
       >
         {isCorrect ? (
-          <p className={`text-green-400 font-bold mb-3 ${capital ? "text-xl" : "text-2xl"}`}>
+          <p className={`${display.className} mb-3 text-atlas-green ${capital ? "text-xl" : "text-2xl"}`}>
             {capital ? `Yes, ${capital}'s ${noun} is ${countryName}!` : "Correct! ✓"}
           </p>
         ) : (
           <>
-            <p className="text-red-400 text-lg font-bold mb-1">
+            <p className={`${display.className} mb-1 text-lg text-atlas-red`}>
               {capital
                 ? `Nope! ${capital}'s ${noun} is ${countryName}. It's over here.`
                 : `No, ${countryName} is over here.`}
             </p>
             {clickedCountryName && (
-              <p className="text-slate-300 text-sm mb-1">
-                You clicked on {clickedCountryName}.
-              </p>
+              <p className="mb-1 text-sm text-ink">You clicked on {clickedCountryName}.</p>
             )}
-            <p className="text-slate-400 text-sm mb-3">
+            <p className="mb-3 text-sm text-ink-muted">
               {Math.round(distanceMiles).toLocaleString()} miles away
             </p>
           </>
         )}
-        <p className="text-yellow-400 text-3xl font-bold mb-2">+{score} pts</p>
+        <p className={`${display.className} mb-2 text-3xl text-ink-strong`}>+{score} pts</p>
         {levelUpTo && (
-          <p className="text-emerald-300 text-sm font-semibold mb-2">
+          <p className="mb-2 text-sm font-medium text-atlas-green">
             Level up! Next up: {levelUpTo} countries
           </p>
         )}
-        <p className="text-blue-300 text-sm font-semibold">
-          Click here for the next {noun} →
-        </p>
+        <p className="text-sm font-medium text-atlas-blue">Click here for the next {noun} →</p>
       </button>
     </div>
   );
