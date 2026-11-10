@@ -15,6 +15,7 @@ import RoundResult from "./RoundResult";
 import GameOver from "./GameOver";
 import HomeScreen from "./HomeScreen";
 import { CAPITALS } from "@/lib/capitals";
+import { HINTS } from "@/lib/hints";
 import { STATE_CAPITALS } from "@/lib/stateCapitals";
 import { PROVINCE_CAPITALS, TERRITORIES } from "@/lib/provinceCapitals";
 import { MODES, MODE_INFO } from "@/lib/modes";
@@ -192,6 +193,7 @@ export default function GameContainer() {
   const capital = mode.capitals
     ? CAPITALS_BY_MAP[mode.map][targetName]
     : null;
+  const hint = mode.hints ? HINTS[targetName] : null;
   const leveledUp = mode.tiers && currentRound.tier !== state.tier;
   // Canada mixes provinces and territories, so name each one right
   const noun = TERRITORIES.has(targetName) && mode.map === "ca" ? "territory" : mode.noun;
@@ -199,7 +201,10 @@ export default function GameContainer() {
   return (
     <div className="flex flex-col h-dvh bg-paper">
       <GameHUD
-        prompt={capital ? `Find ${possessive(capital)} ${noun}` : targetName}
+        prompt={
+          capital ? `Find ${possessive(capital)} ${noun}` : hint ? "Which country is this?" : targetName
+        }
+        hint={hint}
         currentRound={state.currentRound + 1}
         totalRounds={mode.rounds}
         totalScore={state.totalScore}
@@ -235,6 +240,7 @@ export default function GameContainer() {
             levelUpTo={leveledUp ? TIER_LABELS[state.tier] : null}
             noun={noun}
             nextNoun={mode.map === "ca" ? "one" : mode.noun}
+            revealName={mode.hints}
             onNext={handleNextRound}
           />
         )}

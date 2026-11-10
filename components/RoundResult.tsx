@@ -12,6 +12,8 @@ interface RoundResultProps {
   noun: string;
   // Word for the next round's place, e.g. "country"
   nextNoun: string;
+  // Say which country it was on a correct guess, since the prompt never named it
+  revealName?: boolean;
   onNext: () => void;
 }
 
@@ -25,6 +27,7 @@ export default function RoundResult({
   levelUpTo,
   noun,
   nextNoun,
+  revealName = false,
   onNext,
 }: RoundResultProps) {
   return (
@@ -34,8 +37,12 @@ export default function RoundResult({
         className="mx-4 min-w-56 max-w-sm cursor-pointer border border-[#9c8a63] bg-paper/95 p-6 text-center text-ink shadow-[0_8px_30px_-8px_rgba(58,47,34,0.45)] pointer-events-auto transition-colors hover:bg-paper"
       >
         {isCorrect ? (
-          <p className={`${display.className} mb-3 text-atlas-green ${capital ? "text-xl" : "text-2xl"}`}>
-            {capital ? `Yes, ${possessive(capital)} ${noun} is ${countryName}!` : "Correct! ✓"}
+          <p className={`${display.className} mb-3 text-atlas-green ${capital || revealName ? "text-xl" : "text-2xl"}`}>
+            {capital
+              ? `Yes, ${possessive(capital)} ${noun} is ${countryName}!`
+              : revealName
+                ? `Yes, it's ${countryName}!`
+                : "Correct! ✓"}
           </p>
         ) : (
           <>
