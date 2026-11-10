@@ -122,3 +122,8 @@ function haversineDistanceMiles(
       Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+
+// "Paris" → "Paris's", but "St. John's" stays "St. John's"
+export function possessive(name: string): string {
+  return name.endsWith("'s") ? name : `${name}'s`;
+}

@@ -1,4 +1,5 @@
 import { display } from "@/lib/fonts";
+import { possessive } from "@/lib/geo-utils";
 
 interface RoundResultProps {
   isCorrect: boolean;
@@ -8,7 +9,9 @@ interface RoundResultProps {
   capital: string | null;
   clickedCountryName: string | null;
   levelUpTo: string | null;
-  noun: "country" | "state";
+  noun: string;
+  // Word for the next round's place, e.g. "country"
+  nextNoun: string;
   onNext: () => void;
 }
 
@@ -21,6 +24,7 @@ export default function RoundResult({
   clickedCountryName,
   levelUpTo,
   noun,
+  nextNoun,
   onNext,
 }: RoundResultProps) {
   return (
@@ -31,13 +35,13 @@ export default function RoundResult({
       >
         {isCorrect ? (
           <p className={`${display.className} mb-3 text-atlas-green ${capital ? "text-xl" : "text-2xl"}`}>
-            {capital ? `Yes, ${capital}'s ${noun} is ${countryName}!` : "Correct! ✓"}
+            {capital ? `Yes, ${possessive(capital)} ${noun} is ${countryName}!` : "Correct! ✓"}
           </p>
         ) : (
           <>
             <p className={`${display.className} mb-1 text-lg text-atlas-red`}>
               {capital
-                ? `Nope! ${capital}'s ${noun} is ${countryName}. It's over here.`
+                ? `Nope! ${possessive(capital)} ${noun} is ${countryName}. It's over here.`
                 : `No, ${countryName} is over here.`}
             </p>
             {clickedCountryName && (
@@ -54,7 +58,7 @@ export default function RoundResult({
             Level up! Next up: {levelUpTo} countries
           </p>
         )}
-        <p className="text-sm font-medium text-atlas-blue">Click here for the next {noun} →</p>
+        <p className="text-sm font-medium text-atlas-blue">Click here for the next {nextNoun} →</p>
       </button>
     </div>
   );

@@ -9,6 +9,7 @@ import React, {
   useImperativeHandle,
 } from "react";
 import {
+  geoAlbers,
   geoAlbersUsa,
   geoGraticule10,
   geoNaturalEarth1,
@@ -20,7 +21,7 @@ import {
   ZoomBehavior,
 } from "d3";
 import type { Feature, Geometry } from "geojson";
-import type { CountryFeature } from "@/types";
+import type { CountryFeature, MapKind } from "@/types";
 import { distanceToOutline } from "@/lib/geo-utils";
 
 export interface WorldMapHandle {
@@ -35,8 +36,9 @@ export interface WorldMapHandle {
 
 interface WorldMapProps {
   features: CountryFeature[];
-  // "us" draws the states on an Albers projection with Alaska and Hawaii inset
-  map?: "world" | "us";
+  // "us" draws the states on an Albers projection with Alaska and Hawaii inset;
+  // "ca" draws the provinces on an Albers conic centred on Canada
+  map?: MapKind;
   markerPosition: [number, number] | null;
   highlightId?: number | null;
   onMarkerPlace: (lngLat: [number, number]) => void;
@@ -60,25 +62,24 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
     onMarkerPlaceRef.current = onMarkerPlace;
   });
 
-  const projection = useMemo(
-    () =>
-      map === "us"
-        ? geoAlbersUsa().fitExtent(
-            [[20, 20], [940, 480]],
-            { type: "FeatureCollection", features: features.map((f) => f.feature) }
-          )
-        : geoNaturalEarth1().scale(153).translate([480, 250]),
-    [map, features]
-  );
+  const projection = useMemo(() => {
+    if (map === "world") return geoNaturalEarth1().scale(153).translate([480, 250]);
+    const all = { type: "FeatureCollection" as const, features: features.map((f) => f.feature) };
+    const base = map === "us" ? geoAlbersUsa() : geoAlbers().rotate([96, 0]).parallels([49, 77]);
+    return base.fitExtent([[20, 20], [940, 480]], all);
+  }, [map, features]);
 
   const pathGen = useMemo(() => geoPath().projection(projection), [projection]);
 
-  // Globe outline and lat/long grid for the world map; the US map's inset panels can't show them
+  // Lat/long grid (plus the globe outline for the world); the US map's inset panels can't show them
   const backdrop = useMemo(
     () =>
-      map === "world"
-        ? { sphere: pathGen({ type: "Sphere" }) ?? "", grid: pathGen(geoGraticule10()) ?? "" }
-        : null,
+      map === "us"
+        ? null
+        : {
+            sphere: map === "world" ? pathGen({ type: "Sphere" }) ?? "" : "",
+            grid: pathGen(geoGraticule10()) ?? "",
+          },
     [map, pathGen]
   );
 

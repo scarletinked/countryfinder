@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { useGameState, ROUNDS_PER_GAME } from "@/hooks/useGameState";
+import { useGameState } from "@/hooks/useGameState";
 import { loadCountries } from "@/lib/countries";
 import { loadStates } from "@/lib/states";
+import { loadProvinces } from "@/lib/provinces";
 import { pickAny, pickCountryForTier, HITS_TO_ADVANCE, TIER_LABELS } from "@/lib/difficulty";
-import { getDistanceMilesToCountry, getLandmarkPoint } from "@/lib/geo-utils";
+import { getDistanceMilesToCountry, getLandmarkPoint, possessive } from "@/lib/geo-utils";
 import { calculateScore } from "@/lib/scoring";
 import WorldMap, { type WorldMapHandle } from "./WorldMap";
 import GameHUD from "./GameHUD";
@@ -15,27 +16,36 @@ import GameOver from "./GameOver";
 import HomeScreen from "./HomeScreen";
 import { CAPITALS } from "@/lib/capitals";
 import { STATE_CAPITALS } from "@/lib/stateCapitals";
+import { PROVINCE_CAPITALS, TERRITORIES } from "@/lib/provinceCapitals";
 import { MODES, MODE_INFO } from "@/lib/modes";
-import type { CountryFeature, GameMode, Leaderboards, Tier } from "@/types";
+import type { CountryFeature, GameMode, Leaderboards, MapKind, Tier } from "@/types";
 
 // How far outside the target's outline, in on-screen pixels, a guess still counts as a hit
 const TAP_TOLERANCE_PX = 6;
+
+const CAPITALS_BY_MAP: Record<MapKind, Record<string, string>> = {
+  world: CAPITALS,
+  us: STATE_CAPITALS,
+  ca: PROVINCE_CAPITALS,
+};
 
 export default function GameContainer() {
   const [state, dispatch] = useGameState();
   const [allCountries, setAllCountries] = useState<CountryFeature[]>([]);
   const [allStates, setAllStates] = useState<CountryFeature[]>([]);
+  const [allProvinces, setAllProvinces] = useState<CountryFeature[]>([]);
   const [loadingMap, setLoadingMap] = useState(true);
   const [homeLeaderboards, setHomeLeaderboards] = useState<Record<GameMode, Leaderboards> | null>(null);
   const [parrotDestLngLat, setParrotDestLngLat] = useState<[number, number] | null>(null);
   const [clickedCountryName, setClickedCountryName] = useState<string | null>(null);
   const mapRef = useRef<WorldMapHandle>(null);
 
-  // Load country and state geodata once
+  // Load country, state and province geodata once
   useEffect(() => {
-    Promise.all([loadCountries(), loadStates()]).then(([c, s]) => {
+    Promise.all([loadCountries(), loadStates(), loadProvinces()]).then(([c, s, p]) => {
       setAllCountries(c);
       setAllStates(s);
+      setAllProvinces(p);
       setLoadingMap(false);
     });
   }, []);
@@ -51,12 +61,20 @@ export default function GameContainer() {
   }, [state.phase]);
 
   const mode = MODE_INFO[state.mode];
-  // Everything drawn on the map, and the places a round can ask about (DC is drawn but never asked)
-  const mapFeatures = mode.map === "us" ? allStates : allCountries;
+  // Everything drawn on the map, and the places a round can ask about
+  // (DC and the Canadian territories are drawn but never asked)
+  const featuresFor = useCallback(
+    (map: MapKind) => ({ world: allCountries, us: allStates, ca: allProvinces })[map],
+    [allCountries, allStates, allProvinces]
+  );
+  const mapFeatures = featuresFor(mode.map);
   const targetsFor = useCallback(
-    (m: GameMode) =>
-      MODE_INFO[m].map === "us" ? allStates.filter((s) => STATE_CAPITALS[s.name]) : allCountries,
-    [allCountries, allStates]
+    (m: GameMode) => {
+      const { map } = MODE_INFO[m];
+      const capitals = CAPITALS_BY_MAP[map];
+      return map === "world" ? allCountries : featuresFor(map).filter((p) => capitals[p.name]);
+    },
+    [allCountries, featuresFor]
   );
   const pickTarget = useCallback(
     (m: GameMode, tier: Tier, used: Set<number>) =>
@@ -164,16 +182,18 @@ export default function GameContainer() {
   const isResult = state.phase === "round-result";
   const targetName = currentRound.targetCountry.name;
   const capital = mode.capitals
-    ? (mode.map === "us" ? STATE_CAPITALS : CAPITALS)[targetName]
+    ? CAPITALS_BY_MAP[mode.map][targetName]
     : null;
   const leveledUp = mode.tiers && currentRound.tier !== state.tier;
+  // Canada mixes provinces and territories, so name each one right
+  const noun = TERRITORIES.has(targetName) && mode.map === "ca" ? "territory" : mode.noun;
 
   return (
     <div className="flex flex-col h-dvh bg-paper">
       <GameHUD
-        prompt={capital ? `Find ${capital}'s ${mode.noun}` : targetName}
+        prompt={capital ? `Find ${possessive(capital)} ${noun}` : targetName}
         currentRound={state.currentRound + 1}
-        totalRounds={ROUNDS_PER_GAME}
+        totalRounds={mode.rounds}
         totalScore={state.totalScore}
         tier={mode.tiers ? currentRound.tier : null}
         streak={leveledUp ? HITS_TO_ADVANCE : state.streak}
@@ -204,7 +224,8 @@ export default function GameContainer() {
             capital={capital}
             clickedCountryName={clickedCountryName}
             levelUpTo={leveledUp ? TIER_LABELS[state.tier] : null}
-            noun={mode.noun}
+            noun={noun}
+            nextNoun={mode.map === "ca" ? "one" : mode.noun}
             onNext={handleNextRound}
           />
         )}

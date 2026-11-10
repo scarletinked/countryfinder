@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { GameMode, GameRound, LeaderboardEntry, Leaderboards as Boards } from "@/types";
-import { MODE_INFO, MODE_LABELS } from "@/lib/modes";
+import { MODE_INFO, MODE_LABELS, maxScore } from "@/lib/modes";
 import { display } from "@/lib/fonts";
 import { recordScore } from "@/lib/personalBest";
 import LeaderboardCard from "./LeaderboardCard";
@@ -133,7 +133,7 @@ export default function GameOver({ mode, totalScore, rounds, onPlayAgain, onHome
             {totalScore}
           </p>
           <p className="text-ink-muted">
-            out of 1000 · {hits} of {rounds.length} found
+            out of {maxScore(mode)} · {hits} of {rounds.length} found
           </p>
           <div className="mt-1 flex gap-1.5" aria-label="Round results">
             {rounds.map((r) => (

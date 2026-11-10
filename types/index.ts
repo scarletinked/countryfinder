@@ -9,7 +9,10 @@ export interface CountryFeature {
 
 export type Tier = "easy" | "medium" | "hard";
 
-export type GameMode = "standard" | "polly" | "states" | "statehouse";
+export type GameMode = "standard" | "polly" | "states" | "statehouse" | "provinces" | "provcapitals";
+
+// Which map a mode is played on
+export type MapKind = "world" | "us" | "ca";
 
 export interface GameRound {
   roundNumber: number;

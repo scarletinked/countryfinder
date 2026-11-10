@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getLeaderboard, getWeeklyLeaderboard, getDailyLeaderboard, addEntry } from "@/lib/leaderboard";
 import { isProfane } from "@/lib/profanity";
-import { isGameMode } from "@/lib/modes";
+import { isGameMode, maxScore } from "@/lib/modes";
 
 export async function GET(req: NextRequest) {
   const param = req.nextUrl.searchParams.get("mode") ?? "standard";
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_mode" }, { status: 400 });
   }
 
-  if (typeof score !== "number" || !isFinite(score) || score <= 0 || score > 1000) {
+  if (typeof score !== "number" || !isFinite(score) || score <= 0 || score > maxScore(mode)) {
     return NextResponse.json({ error: "invalid_score" }, { status: 400 });
   }
 

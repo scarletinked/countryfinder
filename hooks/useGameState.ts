@@ -3,8 +3,7 @@
 import { useReducer } from "react";
 import type { GameState, GameAction, CountryFeature, Tier } from "@/types";
 import { nextTierState } from "@/lib/difficulty";
-
-export const ROUNDS_PER_GAME = 10;
+import { MODE_INFO } from "@/lib/modes";
 
 function makeRound(country: CountryFeature, roundNumber: number, tier: Tier) {
   return {
@@ -57,7 +56,7 @@ function reducer(state: GameState, action: GameAction): GameState {
       // Ignore repeats (e.g. a double-click on "Next") once the round has already advanced
       if (state.phase !== "round-result") return state;
       const next = state.currentRound + 1;
-      if (next >= ROUNDS_PER_GAME) {
+      if (next >= MODE_INFO[state.mode].rounds) {
         return { ...state, phase: "game-over" };
       }
       return {

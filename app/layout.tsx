@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Homing Parrot",
-  description: "It's like a Homing Pigeon, except prettier. Find countries on a map — 10 rounds, score up to 1000 points.",
+  description: "It's like a Homing Pigeon, except prettier. Find countries, US states and Canadian provinces on a map.",
 };
 
 export default function RootLayout({

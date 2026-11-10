@@ -194,7 +194,7 @@ function HeroMap({ countries }: { countries: CountryFeature[] }) {
       <div className="absolute bottom-3 left-3 border border-[#9c8a63] bg-paper/95 px-4 py-3 sm:bottom-5 sm:left-6 sm:px-5">
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-ink-muted">
           <img src="/icon.svg" alt="" className="h-5 w-5" />
-          A geography game in ten rounds
+          A geography game in six chapters
         </div>
         <h1 className={`${display.className} text-3xl leading-none text-ink-strong sm:text-5xl`}>
           Homing Parrot
