@@ -45,10 +45,12 @@ interface WorldMapProps {
   highlightId?: number | null;
   onMarkerPlace: (lngLat: [number, number]) => void;
   parrotDestLngLat?: [number, number] | null;
+  // false hides the lines between places, so the land reads as one shape (the answer still gets its outline)
+  borders?: boolean;
 }
 
 const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
-  { features, surroundings, map = "world", markerPosition, highlightId, onMarkerPlace, parrotDestLngLat },
+  { features, surroundings, map = "world", markerPosition, highlightId, onMarkerPlace, parrotDestLngLat, borders = true },
   ref
 ) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -297,13 +299,15 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
             vectorEffect="non-scaling-stroke"
           />
         ))}
-        {features.map((f) => (
+        {/* The answer is drawn last so neighbouring shapes can't paint over its red outline */}
+        {[...features.filter((f) => f.id !== highlightId), ...features.filter((f) => f.id === highlightId)].map((f) => (
           <path
             key={f.id}
             data-id={f.id}
             d={pathGen(f.feature) ?? ""}
             fill={highlightId === f.id ? "#e3a594" : "#e9dcbc"}
-            stroke={highlightId === f.id ? "#b23a2e" : "#9c8a63"}
+            // Without borders, each stroke matches the land so the lines between countries disappear
+            stroke={highlightId === f.id ? "#b23a2e" : borders ? "#9c8a63" : "#e9dcbc"}
             strokeWidth={highlightId === f.id ? 1.5 : 0.75}
             // Keep borders a hairline at every zoom so small countries aren't mostly border
             vectorEffect="non-scaling-stroke"

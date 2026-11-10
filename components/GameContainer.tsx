@@ -223,6 +223,7 @@ export default function GameContainer() {
           highlightId={isResult ? currentRound.targetCountry.id : null}
           onMarkerPlace={handleMarkerPlace}
           parrotDestLngLat={parrotDestLngLat}
+          borders={mode.borders}
         />
 
         <ZoomControls
