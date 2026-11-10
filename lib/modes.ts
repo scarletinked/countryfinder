@@ -1,17 +1,17 @@
 import type { GameMode, MapKind } from "@/types";
 import { PROVINCE_CAPITALS } from "./provinceCapitals";
 
-export const MODES: GameMode[] = ["standard", "polly", "states", "statehouse", "provinces", "provcapitals", "birds"];
+export const MODES: GameMode[] = ["standard", "polly", "birds", "states", "statehouse", "provinces", "provcapitals"];
 
 // The "standard" key is kept so existing leaderboard scores carry over; only its display name changed
 export const MODE_LABELS: Record<GameMode, string> = {
   standard: "International Flight",
   polly: "Polly Wants a Capital",
+  birds: "What Type of Bird Is That?!",
   states: "United Squawks of America",
   statehouse: "Polly Wants a Statehouse",
   provinces: "True North Flyover",
   provcapitals: "Polly Wants a Parliament",
-  birds: "What Type of Bird Is That?!",
 };
 
 export const POINTS_PER_ROUND = 100;
@@ -49,30 +49,30 @@ export const MODE_INFO: Record<GameMode, ModeInfo> = {
     blurb: "From capital to country",
     ink: "#b23a2e",
   },
+  birds: {
+    map: "world", capitals: false, hints: true, tiers: true, noun: "country", numeral: "III", rounds: DEFAULT_ROUNDS,
+    blurb: "From a curious fact to country",
+    ink: "#b23a2e",
+  },
   states: {
-    map: "us", capitals: false, hints: false, tiers: false, noun: "state", numeral: "III", rounds: DEFAULT_ROUNDS,
+    map: "us", capitals: false, hints: false, tiers: false, noun: "state", numeral: "IV", rounds: DEFAULT_ROUNDS,
     blurb: "All fifty states",
     ink: "#2e5d7a",
   },
   statehouse: {
-    map: "us", capitals: true, hints: false, tiers: false, noun: "state", numeral: "IV", rounds: DEFAULT_ROUNDS,
+    map: "us", capitals: true, hints: false, tiers: false, noun: "state", numeral: "V", rounds: DEFAULT_ROUNDS,
     blurb: "From state capital to state",
     ink: "#2e5d7a",
   },
   provinces: {
-    map: "ca", capitals: false, hints: false, tiers: false, noun: "province", numeral: "V", rounds: PROVINCE_COUNT,
+    map: "ca", capitals: false, hints: false, tiers: false, noun: "province", numeral: "VI", rounds: PROVINCE_COUNT,
     blurb: "All 13 provinces and territories",
     ink: "#3f6b2f",
   },
   provcapitals: {
-    map: "ca", capitals: true, hints: false, tiers: false, noun: "province", numeral: "VI", rounds: PROVINCE_COUNT,
+    map: "ca", capitals: true, hints: false, tiers: false, noun: "province", numeral: "VII", rounds: PROVINCE_COUNT,
     blurb: "From capital to province or territory",
     ink: "#3f6b2f",
-  },
-  birds: {
-    map: "world", capitals: false, hints: true, tiers: true, noun: "country", numeral: "VII", rounds: DEFAULT_ROUNDS,
-    blurb: "From a curious fact to country",
-    ink: "#b23a2e",
   },
 };
 
