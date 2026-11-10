@@ -32,47 +32,36 @@ export interface ModeInfo {
   rounds: number;
   // One line for the game picker
   blurb: string;
-  // Chapter numeral on the home screen
-  numeral: string;
-  // Ink color for this mode's numeral: red for the world, blue for the US, green for Canada
-  ink: string;
 }
 
 export const MODE_INFO: Record<GameMode, ModeInfo> = {
   standard: {
-    map: "world", capitals: false, hints: false, tiers: true, noun: "country", numeral: "I", rounds: DEFAULT_ROUNDS,
+    map: "world", capitals: false, hints: false, tiers: true, noun: "country", rounds: DEFAULT_ROUNDS,
     blurb: "Countries of the world, easy to hard",
-    ink: "#b23a2e",
   },
   polly: {
-    map: "world", capitals: true, hints: false, tiers: true, noun: "country", numeral: "II", rounds: DEFAULT_ROUNDS,
+    map: "world", capitals: true, hints: false, tiers: true, noun: "country", rounds: DEFAULT_ROUNDS,
     blurb: "From capital to country",
-    ink: "#b23a2e",
   },
   birds: {
-    map: "world", capitals: false, hints: true, tiers: true, noun: "country", numeral: "III", rounds: DEFAULT_ROUNDS,
+    map: "world", capitals: false, hints: true, tiers: true, noun: "country", rounds: DEFAULT_ROUNDS,
     blurb: "From a curious fact to country",
-    ink: "#b23a2e",
   },
   states: {
-    map: "us", capitals: false, hints: false, tiers: false, noun: "state", numeral: "IV", rounds: DEFAULT_ROUNDS,
+    map: "us", capitals: false, hints: false, tiers: false, noun: "state", rounds: DEFAULT_ROUNDS,
     blurb: "All fifty states",
-    ink: "#2e5d7a",
   },
   statehouse: {
-    map: "us", capitals: true, hints: false, tiers: false, noun: "state", numeral: "V", rounds: DEFAULT_ROUNDS,
+    map: "us", capitals: true, hints: false, tiers: false, noun: "state", rounds: DEFAULT_ROUNDS,
     blurb: "From state capital to state",
-    ink: "#2e5d7a",
   },
   provinces: {
-    map: "ca", capitals: false, hints: false, tiers: false, noun: "province", numeral: "VI", rounds: PROVINCE_COUNT,
+    map: "ca", capitals: false, hints: false, tiers: false, noun: "province", rounds: PROVINCE_COUNT,
     blurb: "All 13 provinces and territories",
-    ink: "#3f6b2f",
   },
   provcapitals: {
-    map: "ca", capitals: true, hints: false, tiers: false, noun: "province", numeral: "VII", rounds: PROVINCE_COUNT,
+    map: "ca", capitals: true, hints: false, tiers: false, noun: "province", rounds: PROVINCE_COUNT,
     blurb: "From capital to province or territory",
-    ink: "#3f6b2f",
   },
 };
 

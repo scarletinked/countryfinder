@@ -30,12 +30,16 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
       <HeroMap countries={countries} />
 
       <div className="mx-auto grid max-w-5xl gap-8 px-4 py-6 sm:px-8 sm:py-8 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] md:gap-10">
-        {/* Contents: the four games */}
+        {/* The games to pick from */}
         <section>
-          <h2 className={`${display.className} mb-2 text-xl font-medium text-ink-strong`}>Contents</h2>
+          <p className="mb-4 text-sm leading-relaxed text-ink">
+            Each game asks you to find places on the map: countries, capitals, states and provinces.
+            A direct hit scores 100 points, and a miss scores up to 50 the closer you get.
+          </p>
+          <h2 className={`${display.className} mb-2 text-xl font-medium text-ink-strong`}>Games</h2>
           <div role="radiogroup" aria-label="Pick a game" className="border-b border-rule">
             {MODES.map((m) => (
-              <Chapter
+              <GameOption
                 key={m}
                 mode={m}
                 best={bests[m] ?? null}
@@ -45,16 +49,15 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
             ))}
           </div>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="mt-5">
             <button
               onClick={() => onStart(selected)}
               disabled={loading}
               className="group inline-flex items-center justify-center gap-2 bg-atlas-red px-6 py-3 text-base font-medium text-paper transition hover:brightness-110 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
             >
-              {loading ? "Unrolling the maps…" : `Begin chapter ${MODE_INFO[selected].numeral}`}
+              {loading ? "Unrolling the maps…" : "Play game"}
               {!loading && <span className="transition-transform group-hover:translate-x-1">→</span>}
             </button>
-            <span className="text-sm text-ink-muted">100 pts a direct hit, up to 50 if close</span>
           </div>
         </section>
 
@@ -70,7 +73,7 @@ export default function HomeScreen({ countries, loading, leaderboards, onStart }
   );
 }
 
-function Chapter({
+function GameOption({
   mode,
   best,
   selected,
@@ -87,13 +90,10 @@ function Chapter({
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className={`grid w-full grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 border-t border-rule px-2 py-3 text-left transition ${
+      className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-rule px-3 py-3 text-left transition ${
         selected ? "bg-paper-deep" : "hover:bg-paper-deep/50"
       }`}
     >
-      <span className={`${display.className} text-xl`} style={{ color: info.ink }}>
-        {info.numeral}
-      </span>
       <span className="min-w-0">
         <span className={`block font-medium ${selected ? "text-ink-strong" : "text-ink"}`}>
           {MODE_LABELS[mode]}
@@ -194,7 +194,7 @@ function HeroMap({ countries }: { countries: CountryFeature[] }) {
       <div className="absolute bottom-3 left-3 border border-[#9c8a63] bg-paper/95 px-4 py-3 sm:bottom-5 sm:left-6 sm:px-5">
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-ink-muted">
           <img src="/icon.svg" alt="" className="h-5 w-5" />
-          A geography game in seven chapters
+          A geography game
         </div>
         <h1 className={`${display.className} text-3xl leading-none text-ink-strong sm:text-5xl`}>
           Homing Parrot

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { GameMode, GameRound, LeaderboardEntry, Leaderboards as Boards } from "@/types";
-import { MODE_INFO, MODE_LABELS, maxScore } from "@/lib/modes";
+import { MODE_LABELS, maxScore } from "@/lib/modes";
 import { display } from "@/lib/fonts";
 import { recordScore } from "@/lib/personalBest";
 import LeaderboardCard from "./LeaderboardCard";
@@ -103,7 +103,6 @@ export default function GameOver({ mode, totalScore, rounds, onPlayAgain, onHome
   }
 
   const hits = rounds.filter((r) => r.isCorrect).length;
-  const info = MODE_INFO[mode];
 
   return (
     <div className="min-h-screen bg-paper text-ink">
@@ -116,14 +115,9 @@ export default function GameOver({ mode, totalScore, rounds, onPlayAgain, onHome
           >
             <span className="transition-transform group-hover:-translate-x-1">←</span>
             <img src="/icon.svg" alt="" className="h-8 w-8" />
-            <span className={`${display.className} text-lg`}>Contents</span>
+            <span className={`${display.className} text-lg`}>Games</span>
           </button>
-          <span className="text-sm text-ink-muted">
-            <span className={`${display.className} mr-1.5`} style={{ color: info.ink }}>
-              {info.numeral}
-            </span>
-            {MODE_LABELS[mode]}
-          </span>
+          <span className="text-sm text-ink-muted">{MODE_LABELS[mode]}</span>
         </header>
 
         {/* Score */}
@@ -179,6 +173,13 @@ export default function GameOver({ mode, totalScore, rounds, onPlayAgain, onHome
 
         {/* Actions */}
         <div className="flex flex-wrap justify-center gap-3">
+          <button
+            onClick={onHome}
+            className="group inline-flex items-center gap-2 border-2 border-atlas-red px-8 py-3 text-lg font-medium text-atlas-red transition hover:bg-atlas-red/10 active:scale-[0.98]"
+          >
+            <span className="transition-transform group-hover:-translate-x-1">←</span>
+            All games
+          </button>
           <button
             onClick={onPlayAgain}
             className="group inline-flex items-center gap-2 bg-atlas-red px-8 py-3.5 text-lg font-medium text-paper transition hover:brightness-110 active:scale-[0.98]"
