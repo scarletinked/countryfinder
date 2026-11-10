@@ -46,7 +46,7 @@ export const HINTS: Record<string, string> = {
     "The Niger, Senegal and Gambia rivers all start here, earning it the nickname 'water tower of West Africa'. It holds about a quarter of the world's bauxite, used to make aluminium.",
   "Guinea-Bissau":
     "Its Bijagós Islands are home to hippos that swim in salt water. Cashew nuts make up most of what it sells abroad.",
-  "Ivory Coast":
+  "Côte d'Ivoire (Ivory Coast)":
     "The world's biggest cocoa grower. Its capital has a basilica modelled on St. Peter's in Rome, one of the largest churches on Earth.",
   Kenya:
     "M-Pesa, the mobile-phone money service, launched here in 2007. Its runners have won the Boston Marathon more than any other nation's.",
@@ -174,7 +174,7 @@ export const HINTS: Record<string, string> = {
     "Gave the world the necktie, named after its soldiers' scarves. Its walled city of Dubrovnik played King's Landing in Game of Thrones.",
   Cyprus:
     "This island has been divided since 1974, and a UN buffer zone runs through its capital, the last divided capital in the world.",
-  "Czech Republic":
+  "Czechia (Czech Republic)":
     "Drinks more beer per person than any other country. Pilsner lager was invented in its city of Plzeň in 1842.",
   Denmark:
     "Home of LEGO, founded in 1932 by carpenter Ole Kirk Christiansen. The name comes from 'leg godt', meaning 'play well'.",
@@ -282,7 +282,7 @@ export const HINTS: Record<string, string> = {
     "Home to Mecca and Medina, the two holiest cities in Islam, and named after its ruling family.",
   Syria:
     "Its capital is often called the oldest continuously inhabited capital city in the world.",
-  Turkey:
+  "Türkiye (Turkey)":
     "Its largest city sits on two continents, split by the Bosphorus strait. St. Nicholas, the inspiration for Santa Claus, was a bishop here.",
   "United Arab Emirates":
     "Home to the Burj Khalifa, the world's tallest building, and made up of seven emirates.",

@@ -15,7 +15,7 @@ const EASY = new Set([
   "Colombia", "Cuba", "Greenland",
   "United Kingdom", "Ireland", "France", "Spain", "Portugal", "Germany", "Italy",
   "Greece", "Iceland", "Norway", "Sweden", "Finland", "Poland", "Ukraine",
-  "Russia", "Turkey",
+  "Russia", "Türkiye (Turkey)",
   "Egypt", "Morocco", "South Africa", "Nigeria", "Kenya", "Ethiopia",
   "Madagascar", "Algeria", "Libya",
   "Saudi Arabia", "Iran", "Iraq", "Israel", "India", "Pakistan", "Afghanistan",
