@@ -132,10 +132,11 @@ export default function GameContainer() {
       ? 0
       : getDistanceMilesToCountry(state.markerPosition, target.feature);
     const score = calculateScore(distanceMiles, isCorrect);
+    // The parrot's flight shows where the answer was, so it only flies on a miss
     if (!isCorrect) {
       setClickedCountryName(hit ? hit.name : null);
+      setParrotDestLngLat(getLandmarkPoint(target.feature));
     }
-    setParrotDestLngLat(getLandmarkPoint(target.feature));
     dispatch({ type: "SUBMIT_GUESS", isCorrect, distanceMiles, score });
   }, [state, dispatch, mapFeatures]);
 
