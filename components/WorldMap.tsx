@@ -36,6 +36,8 @@ export interface WorldMapHandle {
 
 interface WorldMapProps {
   features: CountryFeature[];
+  // Land drawn in grey behind the playable shapes for context; it can't be guessed
+  surroundings?: CountryFeature[];
   // "us" draws the states on an Albers projection with Alaska and Hawaii inset;
   // "ca" draws the provinces on an Albers conic centred on Canada
   map?: MapKind;
@@ -46,7 +48,7 @@ interface WorldMapProps {
 }
 
 const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
-  { features, map = "world", markerPosition, highlightId, onMarkerPlace, parrotDestLngLat },
+  { features, surroundings, map = "world", markerPosition, highlightId, onMarkerPlace, parrotDestLngLat },
   ref
 ) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -284,6 +286,17 @@ const WorldMap = forwardRef<WorldMapHandle, WorldMapProps>(function WorldMap(
             <path d={backdrop.grid} fill="none" stroke="#b8cbc2" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
           </>
         )}
+        {/* No data-id, so guesses treat this land like sea */}
+        {surroundings?.map((f) => (
+          <path
+            key={`s${f.id}`}
+            d={pathGen(f.feature) ?? ""}
+            fill="#dcd8cc"
+            stroke="#b9b2a0"
+            strokeWidth={0.5}
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
         {features.map((f) => (
           <path
             key={f.id}

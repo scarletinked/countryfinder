@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { useGameState } from "@/hooks/useGameState";
 import { loadCountries } from "@/lib/countries";
 import { loadStates } from "@/lib/states";
@@ -22,6 +22,9 @@ import type { CountryFeature, GameMode, Leaderboards, MapKind, Tier } from "@/ty
 
 // How far outside the target's outline, in on-screen pixels, a guess still counts as a hit
 const TAP_TOLERANCE_PX = 6;
+
+// Canada's ISO numeric id in the world map data
+const CANADA_ID = 124;
 
 const CAPITALS_BY_MAP: Record<MapKind, Record<string, string>> = {
   world: CAPITALS,
@@ -61,8 +64,13 @@ export default function GameContainer() {
   }, [state.phase]);
 
   const mode = MODE_INFO[state.mode];
-  // Everything drawn on the map, and the places a round can ask about
-  // (DC and the Canadian territories are drawn but never asked)
+  // Every country but Canada, drawn in grey around the Canada map
+  const canadaSurroundings = useMemo(
+    () => allCountries.filter((c) => c.id !== CANADA_ID),
+    [allCountries]
+  );
+
+  // Everything drawn on the map, and the places a round can ask about (DC is drawn but never asked)
   const featuresFor = useCallback(
     (map: MapKind) => ({ world: allCountries, us: allStates, ca: allProvinces })[map],
     [allCountries, allStates, allProvinces]
@@ -203,6 +211,7 @@ export default function GameContainer() {
         <WorldMap
           ref={mapRef}
           features={mapFeatures}
+          surroundings={mode.map === "ca" ? canadaSurroundings : undefined}
           map={mode.map}
           markerPosition={state.markerPosition}
           highlightId={isResult ? currentRound.targetCountry.id : null}
