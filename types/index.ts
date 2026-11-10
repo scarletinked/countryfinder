@@ -31,7 +31,8 @@ export interface GameState {
   mode: GameMode;
   currentRound: number;
   tier: Tier;
-  streak: number;
+  // Correct guesses so far at the current tier
+  hits: number;
   rounds: GameRound[];
   totalScore: number;
   markerPosition: [number, number] | null;

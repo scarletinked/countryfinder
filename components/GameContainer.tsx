@@ -209,7 +209,7 @@ export default function GameContainer() {
         totalRounds={mode.rounds}
         totalScore={state.totalScore}
         tier={mode.tiers ? currentRound.tier : null}
-        streak={leveledUp ? HITS_TO_ADVANCE : state.streak}
+        hits={leveledUp ? HITS_TO_ADVANCE : state.hits}
       />
 
       <div className="relative flex-1 overflow-hidden">

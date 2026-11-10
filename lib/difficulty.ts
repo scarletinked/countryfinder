@@ -1,7 +1,7 @@
 import type { CountryFeature, Tier } from "@/types";
 
-// Correct guesses in a row needed to move up a tier
-export const HITS_TO_ADVANCE = 2;
+// Correct guesses needed at a level to move up a tier; misses in between don't reset the count
+export const HITS_TO_ADVANCE = 3;
 
 export const TIER_LABELS: Record<Tier, string> = {
   easy: "Easy",
@@ -63,13 +63,14 @@ export function pickAny(places: CountryFeature[], excludeIds: Set<number>): Coun
 
 export function nextTierState(
   tier: Tier,
-  streak: number,
+  hits: number,
   isCorrect: boolean
-): { tier: Tier; streak: number } {
-  if (!isCorrect) return { tier, streak: 0 };
-  if (tier === "hard") return { tier, streak: streak + 1 };
-  if (streak + 1 >= HITS_TO_ADVANCE) {
-    return { tier: tier === "easy" ? "medium" : "hard", streak: 0 };
+): { tier: Tier; hits: number } {
+  // A miss doesn't wipe out the correct guesses already made at this level
+  if (!isCorrect) return { tier, hits };
+  if (tier === "hard") return { tier, hits: hits + 1 };
+  if (hits + 1 >= HITS_TO_ADVANCE) {
+    return { tier: tier === "easy" ? "medium" : "hard", hits: 0 };
   }
-  return { tier, streak: streak + 1 };
+  return { tier, hits: hits + 1 };
 }

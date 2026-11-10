@@ -15,7 +15,7 @@ interface GameHUDProps {
   totalScore: number;
   // null for modes without difficulty tiers
   tier: Tier | null;
-  streak: number;
+  hits: number;
   // A fact shown under the prompt, for the hint mode
   hint?: string | null;
 }
@@ -26,7 +26,7 @@ export default function GameHUD({
   totalRounds,
   totalScore,
   tier,
-  streak,
+  hits,
   hint,
 }: GameHUDProps) {
   return (
@@ -39,7 +39,7 @@ export default function GameHUD({
           </span>
           {tier && <span
             className={`flex items-center gap-1.5 border px-2 py-0.5 font-medium ${TIER_STYLES[tier]}`}
-            title={tier === "hard" ? "Hardest level" : `${HITS_TO_ADVANCE} in a row to level up`}
+            title={tier === "hard" ? "Hardest level" : `${HITS_TO_ADVANCE} correct to level up`}
           >
             {TIER_LABELS[tier]}
             {tier !== "hard" && (
@@ -47,7 +47,7 @@ export default function GameHUD({
                 {Array.from({ length: HITS_TO_ADVANCE }, (_, i) => (
                   <span
                     key={i}
-                    className={`h-1.5 w-1.5 rounded-full ${i < streak ? "bg-current" : "bg-current opacity-25"}`}
+                    className={`h-1.5 w-1.5 rounded-full ${i < hits ? "bg-current" : "bg-current opacity-25"}`}
                   />
                 ))}
               </span>

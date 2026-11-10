@@ -25,7 +25,7 @@ function reducer(state: GameState, action: GameAction): GameState {
         mode: action.mode,
         currentRound: 0,
         tier: "easy",
-        streak: 0,
+        hits: 0,
         rounds: [makeRound(action.country, 1, "easy")],
         totalScore: 0,
         markerPosition: null,
@@ -45,7 +45,7 @@ function reducer(state: GameState, action: GameAction): GameState {
       };
       return {
         ...state,
-        ...nextTierState(state.tier, state.streak, action.isCorrect),
+        ...nextTierState(state.tier, state.hits, action.isCorrect),
         phase: "round-result",
         rounds: [...state.rounds.slice(0, state.currentRound), updated],
         totalScore: state.totalScore + action.score,
@@ -81,7 +81,7 @@ const initialState: GameState = {
   mode: "standard",
   currentRound: 0,
   tier: "easy",
-  streak: 0,
+  hits: 0,
   rounds: [],
   totalScore: 0,
   markerPosition: null,
