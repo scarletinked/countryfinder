@@ -237,6 +237,11 @@ export default function GameContainer() {
             countryName={targetName}
             capital={capital}
             clickedCountryName={clickedCountryName}
+            clickedCapital={
+              mode.capitals && clickedCountryName
+                ? CAPITALS_BY_MAP[mode.map][clickedCountryName] ?? null
+                : null
+            }
             levelUpTo={leveledUp ? TIER_LABELS[state.tier] : null}
             noun={noun}
             nextNoun={mode.map === "ca" ? "one" : mode.noun}

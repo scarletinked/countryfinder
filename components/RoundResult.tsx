@@ -8,6 +8,8 @@ interface RoundResultProps {
   countryName: string;
   capital: string | null;
   clickedCountryName: string | null;
+  // Capital of the place that was clicked, in the capital modes
+  clickedCapital?: string | null;
   levelUpTo: string | null;
   noun: string;
   // Word for the next round's place, e.g. "country"
@@ -24,6 +26,7 @@ export default function RoundResult({
   countryName,
   capital,
   clickedCountryName,
+  clickedCapital = null,
   levelUpTo,
   noun,
   nextNoun,
@@ -52,7 +55,10 @@ export default function RoundResult({
                 : `No, ${countryName} is over here.`}
             </p>
             {clickedCountryName && (
-              <p className="mb-1 text-sm text-ink">You clicked on {clickedCountryName}.</p>
+              <p className="mb-1 text-sm text-ink">
+                You clicked on {clickedCountryName}
+                {clickedCapital ? `, whose capital is ${clickedCapital}` : ""}.
+              </p>
             )}
             <p className="mb-3 text-sm text-ink-muted">
               {Math.round(distanceMiles).toLocaleString()} miles away
